@@ -111,7 +111,9 @@ class AppRuntime:
         try:
             warn_if_process_auth_token(self.settings)
             await self._validate_configured_models_best_effort()
-            self._provider_runtime.start_model_list_refresh()
+            await self._provider_runtime.refresh_model_list_cache(
+                only_missing=True
+            )
             await self._start_messaging_if_configured()
             self._publish_state()
             logging.getLogger("uvicorn.error").info(
