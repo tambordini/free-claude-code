@@ -34,7 +34,7 @@ def client():
             "providers.registry.ProviderRegistry.validate_configured_models",
             new_callable=AsyncMock,
         ),
-        patch("providers.registry.ProviderRegistry.start_model_list_refresh"),
+        patch("providers.registry.ProviderRegistry.refresh_model_list_cache"),
         TestClient(app) as test_client,
     ):
         yield test_client

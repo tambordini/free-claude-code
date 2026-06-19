@@ -111,7 +111,7 @@ async def test_runtime_startup_logs_admin_url_without_printed_server_banner(tmp_
         ) as get_logger,
         patch.object(api_runtime_mod.logger, "info") as app_info,
         patch.object(ProviderRegistry, "validate_configured_models", new=AsyncMock()),
-        patch.object(ProviderRegistry, "start_model_list_refresh"),
+        patch.object(ProviderRegistry, "refresh_model_list_cache"),
         patch.object(ProviderRegistry, "cleanup", new=AsyncMock()),
         patch(
             "messaging.platforms.factory.create_messaging_components",
