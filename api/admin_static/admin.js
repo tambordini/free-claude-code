@@ -152,7 +152,6 @@ function renderSections(sections, fields) {
     byId(id).innerHTML = "";
   });
 
-  const sectionById = new Map(sections.map((section) => [section.id, section]));
   const bySection = new Map();
   sections.forEach((section) => bySection.set(section.id, []));
   fields.forEach((field) => {
