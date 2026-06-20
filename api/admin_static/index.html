@@ -9,18 +9,39 @@
   </head>
   <body>
     <div class="app-shell">
-      <header class="topbar">
-        <div class="brand">
-          <div class="brand-mark">FC</div>
-          <div>
-            <h1>Free Claude Code</h1>
-            <p>Server Control</p>
+
+      <!-- Sidebar -->
+      <nav class="sidebar" id="sidebar">
+        <div class="sidebar-top">
+          <div class="brand">
+            <span class="brand-mark">FC</span>
+            <span class="brand-text">Free Claude Code</span>
+          </div>
+          <div class="sidebar-search">
+            <input type="search" id="sidebarSearch" placeholder="Search sections…" spellcheck="false" />
           </div>
         </div>
+        <div class="sidebar-nav" id="sidebarNav">
+          <!-- Rendered by admin.js -->
+        </div>
+      </nav>
+
+      <!-- Mobile header -->
+      <header class="mobile-topbar">
+        <div class="brand">
+          <span class="brand-mark">FC</span>
+          <span class="brand-text">Free Claude Code</span>
+        </div>
+        <button class="hamburger" id="hamburgerBtn" type="button" aria-label="Toggle menu">☰</button>
       </header>
 
+      <!-- Overlay for mobile sidebar -->
+      <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+      <!-- Main content -->
       <main class="main">
         <div id="adminViews" class="admin-views">
+
           <section class="provider-strip" aria-label="Provider status">
             <div class="strip-header">
               <h3>Providers</h3>
@@ -28,33 +49,17 @@
             <div id="providerGrid" class="provider-grid"></div>
           </section>
 
-          <div
-            id="providersSections"
-            class="form-sections"
-            data-section-ids="providers,runtime"
-            aria-label="Provider configuration"
-          ></div>
+          <div id="providersSections" class="form-sections" data-section-ids="providers,runtime" aria-label="Provider configuration"></div>
+          <div id="modelConfigSections" class="form-sections" data-section-ids="models,thinking,web_tools" aria-label="Model configuration"></div>
+          <div id="messagingSections" class="form-sections" data-section-ids="messaging,voice,diagnostics,smoke" aria-label="Messaging configuration"></div>
 
-          <div
-            id="modelConfigSections"
-            class="form-sections"
-            data-section-ids="models,thinking,web_tools"
-            aria-label="Model configuration"
-          ></div>
-
-          <div
-            id="messagingSections"
-            class="form-sections"
-            data-section-ids="messaging,voice,diagnostics,smoke"
-            aria-label="Messaging configuration"
-          ></div>
         </div>
       </main>
 
+      <!-- Action bar -->
       <footer class="action-bar">
         <div class="action-meta">
           <strong id="dirtyState">No changes</strong>
-          <span id="configPath"></span>
         </div>
         <div id="messageArea" class="message-area"></div>
         <div class="action-buttons">
@@ -62,6 +67,7 @@
           <button id="applyButton" class="primary-button" type="button" disabled>Apply</button>
         </div>
       </footer>
+
     </div>
     <script src="/admin/assets/admin.js"></script>
   </body>
