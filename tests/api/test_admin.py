@@ -74,7 +74,8 @@ def test_admin_page_no_longer_renders_global_status_header(monkeypatch, tmp_path
 def test_admin_static_no_longer_fetches_global_status_header():
     script = Path("api/admin_static/admin.js").read_text(encoding="utf-8")
 
-    assert 'api("/admin/api/status")' not in script
+    # The page reads cached models from /admin/api/status on load, but must not
+    # bring back the old global status header UI.
     assert "updateHeader" not in script
     assert '"Running"' not in script
     assert "serverStatus" not in script

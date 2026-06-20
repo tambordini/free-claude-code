@@ -108,6 +108,17 @@ async function load() {
   byId("configPath").textContent = config.paths.managed;
   await validate(false);
   await refreshLocalStatus();
+  // Populate model datalist from server cache (zero provider API calls)
+  try {
+    const status = await api("/admin/api/status");
+    const cachedModels = status.cached_models || {};
+    state.modelOptions = Object.entries(cachedModels)
+      .flatMap(([providerId, models]) => models.map(model => `${providerId}/${model}`))
+      .sort();
+    syncModelDatalist();
+  } catch (e) {
+    // status endpoint unavailable — datalist stays empty, manual refresh works
+  }
   updateDirtyState();
   showMessage("");
 }

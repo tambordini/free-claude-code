@@ -77,7 +77,9 @@ def _asset_response(filename: str) -> FileResponse:
     path = STATIC_DIR / filename
     if not path.is_file():
         raise HTTPException(status_code=404, detail="Admin asset not found")
-    return FileResponse(path)
+    # ponytail: no-cache forces browser revalidation so edited JS/CSS ships
+    # immediately instead of serving a stale cached copy.
+    return FileResponse(path, headers={"Cache-Control": "no-cache"})
 
 
 @router.get("/admin", include_in_schema=False)
@@ -126,10 +128,14 @@ async def apply_admin_config(
         request.app.state.admin_pending_fields = []
         return result
 
-    old_registry = getattr(request.app.state, "provider_registry", None)
-    if isinstance(old_registry, ProviderRegistry):
-        await old_registry.cleanup()
-    request.app.state.provider_registry = ProviderRegistry()
+    registry = getattr(request.app.state, "provider_registry", None)
+    if isinstance(registry, ProviderRegistry):
+        await registry.refresh_model_list_cache(
+            get_cached_settings(), only_missing=True
+        )
+    else:
+        registry = ProviderRegistry()
+        request.app.state.provider_registry = registry
     request.app.state.admin_pending_fields = result["pending_fields"]
     return result
 
