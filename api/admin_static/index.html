@@ -9,7 +9,7 @@
   </head>
   <body>
     <div class="app-shell">
-      <aside class="sidebar">
+      <header class="topbar">
         <div class="brand">
           <div class="brand-mark">FC</div>
           <div>
@@ -17,45 +17,26 @@
             <p>Server Control</p>
           </div>
         </div>
-        <nav id="sectionNav" class="section-nav" aria-label="Admin views"></nav>
-      </aside>
+      </header>
 
       <main class="main">
-        <header class="topbar">
-          <div>
-            <h2 id="pageTitle">Providers</h2>
-          </div>
-        </header>
-
         <div id="adminViews" class="admin-views">
-          <section id="view-providers" class="admin-view active" data-view="providers">
+          <section class="admin-view" data-view="providers">
             <section class="provider-strip" aria-label="Provider status">
               <div class="strip-header">
                 <h3>Providers</h3>
               </div>
               <div id="providerGrid" class="provider-grid"></div>
             </section>
-            <div
-              id="providersSections"
-              class="form-sections"
-              aria-label="Provider configuration"
-            ></div>
+            <div id="providersSections" class="form-sections" aria-label="Provider configuration"></div>
           </section>
 
-          <section id="view-model_config" class="admin-view" data-view="model_config" hidden>
-            <div
-              id="modelConfigSections"
-              class="form-sections"
-              aria-label="Model configuration"
-            ></div>
+          <section class="admin-view" data-view="model_config">
+            <div id="modelConfigSections" class="form-sections" aria-label="Model configuration"></div>
           </section>
 
-          <section id="view-messaging" class="admin-view" data-view="messaging" hidden>
-            <div
-              id="messagingSections"
-              class="form-sections"
-              aria-label="Messaging configuration"
-            ></div>
+          <section class="admin-view" data-view="messaging">
+            <div id="messagingSections" class="form-sections" aria-label="Messaging configuration"></div>
           </section>
         </div>
       </main>
