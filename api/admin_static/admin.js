@@ -108,7 +108,9 @@ function renderProviders(providerStatus) {
 
     const title = document.createElement("div");
     title.className = "provider-title";
-    title.innerHTML = `<strong>${providerName(provider.provider_id)}</strong>`;
+    const titleStrong = document.createElement("strong");
+    titleStrong.textContent = providerName(provider.provider_id);
+    title.appendChild(titleStrong);
 
     const pill = document.createElement("span");
     pill.className = `status-pill ${statusClass(provider.status)}`;
@@ -144,69 +146,59 @@ function updateProviderCard(providerId, status, label, metaText) {
   }
 }
 
-// ponytail: sections grouped by container IDs instead of VIEW_GROUPS;
-// add/remove container divs in HTML to rebalance
 function renderSections(sections, fields) {
-  const containerIds = ["providersSections", "modelConfigSections", "messagingSections"];
-  containerIds.forEach((id) => {
-    byId(id).innerHTML = "";
-  });
-
-  const bySection = new Map();
-  sections.forEach((section) => bySection.set(section.id, []));
+  const fieldsBySection = new Map();
   fields.forEach((field) => {
-    if (!bySection.has(field.section)) bySection.set(field.section, []);
-    bySection.get(field.section).push(field);
+    if (!fieldsBySection.has(field.section)) fieldsBySection.set(field.section, []);
+    fieldsBySection.get(field.section).push(field);
   });
 
-  // Map sections to their container based on which view group they belong to
-  const sectionToContainer = {
-    providers: "providersSections",
-    runtime: "providersSections",
-    models: "modelConfigSections",
-    thinking: "modelConfigSections",
-    web_tools: "modelConfigSections",
-    messaging: "messagingSections",
-    voice: "messagingSections",
-  };
-
-  sections.forEach((section) => {
-    const sectionFields = bySection.get(section.id) || [];
-    if (sectionFields.length === 0) return;
-
-    const containerId = sectionToContainer[section.id];
-    if (!containerId) return;
-
-    const sectionEl = document.createElement("section");
-    sectionEl.className = "settings-section";
-    sectionEl.id = `section-${section.id}`;
-
-    const heading = document.createElement("div");
-    heading.className = "section-heading";
-    heading.innerHTML = `<div><h3>${section.label}</h3><p>${section.description}</p></div>`;
-    sectionEl.appendChild(heading);
-
-    const grid = document.createElement("div");
-    grid.className = "field-grid";
-    sectionFields.forEach((field) => {
-      grid.appendChild(renderField(field));
+  document.querySelectorAll("[data-section-ids]").forEach((container) => {
+    container.innerHTML = "";
+    const ids = container.dataset.sectionIds.split(",");
+    ids.forEach((id) => {
+      const section = sections.find((s) => s.id === id);
+      const sectionFields = fieldsBySection.get(id) || [];
+      if (!section || sectionFields.length === 0) return;
+      container.appendChild(renderSection(section, sectionFields));
     });
-    sectionEl.appendChild(grid);
-
-    if (sectionFields.some((field) => field.advanced)) {
-      const toggle = document.createElement("button");
-      toggle.type = "button";
-      toggle.className = "ghost-button advanced-toggle";
-      toggle.textContent = "Show advanced";
-      toggle.addEventListener("click", () => {
-        const showing = sectionEl.classList.toggle("show-advanced");
-        toggle.textContent = showing ? "Hide advanced" : "Show advanced";
-      });
-      sectionEl.appendChild(toggle);
-    }
-
-    byId(containerId).appendChild(sectionEl);
   });
+}
+
+function renderSection(section, sectionFields) {
+  const sectionEl = document.createElement("section");
+  sectionEl.className = "settings-section";
+  sectionEl.id = `section-${section.id}`;
+
+  const heading = document.createElement("div");
+  heading.className = "section-heading";
+  const headingText = document.createElement("div");
+  const headingTitle = document.createElement("h3");
+  headingTitle.textContent = section.label;
+  const headingDesc = document.createElement("p");
+  headingDesc.textContent = section.description;
+  headingText.append(headingTitle, headingDesc);
+  heading.appendChild(headingText);
+  sectionEl.appendChild(heading);
+
+  const grid = document.createElement("div");
+  grid.className = "field-grid";
+  sectionFields.forEach((field) => grid.appendChild(renderField(field)));
+  sectionEl.appendChild(grid);
+
+  if (sectionFields.some((field) => field.advanced)) {
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "ghost-button advanced-toggle";
+    toggle.textContent = "Show advanced";
+    toggle.addEventListener("click", () => {
+      const showing = sectionEl.classList.toggle("show-advanced");
+      toggle.textContent = showing ? "Hide advanced" : "Show advanced";
+    });
+    sectionEl.appendChild(toggle);
+  }
+
+  return sectionEl;
 }
 
 function renderField(field) {

@@ -21,23 +21,33 @@
 
       <main class="main">
         <div id="adminViews" class="admin-views">
-          <section class="admin-view" data-view="providers">
-            <section class="provider-strip" aria-label="Provider status">
-              <div class="strip-header">
-                <h3>Providers</h3>
-              </div>
-              <div id="providerGrid" class="provider-grid"></div>
-            </section>
-            <div id="providersSections" class="form-sections" aria-label="Provider configuration"></div>
+          <section class="provider-strip" aria-label="Provider status">
+            <div class="strip-header">
+              <h3>Providers</h3>
+            </div>
+            <div id="providerGrid" class="provider-grid"></div>
           </section>
 
-          <section class="admin-view" data-view="model_config">
-            <div id="modelConfigSections" class="form-sections" aria-label="Model configuration"></div>
-          </section>
+          <div
+            id="providersSections"
+            class="form-sections"
+            data-section-ids="providers,runtime"
+            aria-label="Provider configuration"
+          ></div>
 
-          <section class="admin-view" data-view="messaging">
-            <div id="messagingSections" class="form-sections" aria-label="Messaging configuration"></div>
-          </section>
+          <div
+            id="modelConfigSections"
+            class="form-sections"
+            data-section-ids="models,thinking,web_tools"
+            aria-label="Model configuration"
+          ></div>
+
+          <div
+            id="messagingSections"
+            class="form-sections"
+            data-section-ids="messaging,voice,diagnostics,smoke"
+            aria-label="Messaging configuration"
+          ></div>
         </div>
       </main>
 

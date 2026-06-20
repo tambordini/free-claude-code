@@ -106,10 +106,6 @@ textarea {
   align-items: start;
 }
 
-.admin-view[hidden] {
-  display: none;
-}
-
 /* ── Provider Strip ── */
 
 .provider-strip,
@@ -121,6 +117,7 @@ textarea {
 }
 
 .provider-strip {
+  grid-column: 1 / -1;
   padding: 16px;
 }
 
@@ -402,7 +399,7 @@ textarea {
   .admin-views {
     grid-template-columns: 2fr 1fr;
   }
-  .admin-view:last-child {
+  .form-sections:last-child {
     grid-column: 1 / -1;
   }
 }
@@ -411,7 +408,7 @@ textarea {
   .admin-views {
     grid-template-columns: 1fr;
   }
-  .admin-view:last-child {
+  .form-sections:last-child {
     grid-column: auto;
   }
 
