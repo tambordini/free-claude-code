@@ -94,6 +94,7 @@ function adminUi() {
       await this.load();
     },
 
+
     async load() {
       this.loading = true;
       try {
@@ -193,6 +194,7 @@ function adminUi() {
 
     providerName,
     statusClass,
+
 
     errCls(key) {
       return this.validationErrors[key] ? "field-error" : "";
