@@ -1,24 +1,24 @@
-const state = {
-  config: null,
-  fields: new Map(),
-  localStatus: new Map(),
-  modelOptions: [],
-};
-
+// ── Constants ──
 const MASKED_SECRET = "********";
 
 const NAV_GROUPS = [
+  { label: "Model Routing", icon: "🖥️", sections: ["models"] },
   { label: "Configuration", icon: "⚙️", sections: ["providers", "runtime"] },
-  {
-    label: "Models",
-    icon: "🖥️",
-    sections: ["models", "thinking", "web_tools"],
-  },
+  { label: "Models", icon: "🧠", sections: ["thinking", "web_tools"] },
   { label: "Messaging", icon: "💬", sections: ["messaging", "voice"] },
   { label: "Diagnostics", icon: "🛠️", sections: ["diagnostics", "smoke"] },
 ];
 
-const byId = (id) => document.getElementById(id);
+// ── Standalone helpers ──
+
+async function api(path, options = {}) {
+  const response = await fetch(path, {
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+    ...options,
+  });
+  if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+  return response.json();
+}
 
 function sourceLabel(source) {
   const labels = {
@@ -29,21 +29,7 @@ function sourceLabel(source) {
     explicit_env_file: "FCC_ENV_FILE",
     process: "process env",
   };
-  return Object.prototype.hasOwnProperty.call(labels, source)
-    ? labels[source]
-    : source;
-}
-
-function sourceText(field) {
-  const parts = [];
-  const label = sourceLabel(field.source);
-  if (label) {
-    parts.push(label);
-  }
-  if (field.locked) {
-    parts.push("locked");
-  }
-  return parts.join(" ");
+  return Object.prototype.hasOwnProperty.call(labels, source) ? labels[source] : source;
 }
 
 function providerName(providerId) {
@@ -61,11 +47,13 @@ function providerName(providerId) {
     opencode_go: "OpenCode Go",
     zai: "Z.ai",
   };
-  if (names[providerId]) return names[providerId];
-  return providerId
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
+  return (
+    names[providerId] ||
+    providerId
+      .split("_")
+      .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+      .join(" ")
+  );
 }
 
 function statusClass(status) {
@@ -75,521 +63,306 @@ function statusClass(status) {
   return "neutral";
 }
 
-async function api(path, options = {}) {
-  const response = await fetch(path, {
-    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
-    ...options,
-  });
-  if (!response.ok) {
-    throw new Error(`${response.status} ${response.statusText}`);
-  }
-  return response.json();
-}
+// ── Alpine Component ──
 
-async function load() {
-  showMessage("Loading admin config");
-  const config = await api("/admin/api/config");
-  state.config = config;
-  state.fields = new Map(config.fields.map((field) => [field.key, field]));
-  renderProviders(config.provider_status);
-  renderSections(config.sections, config.fields);
-  renderSidebar(config.sections);
-  setupScrollSpy();
-  setupSearch();
-  setupMobileToggle();
-  await validate(false);
-  await refreshLocalStatus();
-  // Populate model datalist from server cache (zero provider API calls)
-  try {
-    const status = await api("/admin/api/status");
-    const cachedModels = status.cached_models || {};
-    state.modelOptions = Object.entries(cachedModels)
-      .flatMap(([providerId, models]) =>
-        models.map((model) => `${providerId}/${model}`),
-      )
-      .sort();
-    syncModelDatalist();
-  } catch (e) {
-    // status endpoint unavailable — datalist stays empty, manual refresh works
-  }
-  updateDirtyState();
-  showMessage("");
-}
+function adminUi() {
+  return {
+    // === Reactive State ===
+    config: null,
+    sections: [],
+    fields: [],
+    fieldValues: {},
+    originals: {},
+    providerStatus: [],
+    modelOptions: [],
+    toast: { show: false, message: "", type: "" },
+    activeSection: "",
+    sidebarOpen: false,
+    searchQuery: "",
+    loading: true,
+    showAdvanced: {},
 
-function renderProviders(providerStatus) {
-  const grid = byId("providerGrid");
-  grid.innerHTML = "";
-  providerStatus.forEach((provider) => {
-    const card = document.createElement("article");
-    card.className = "provider-card";
-    card.dataset.provider = provider.provider_id;
-
-    const title = document.createElement("div");
-    title.className = "provider-title";
-    const titleStrong = document.createElement("strong");
-    titleStrong.textContent = providerName(provider.provider_id);
-    title.appendChild(titleStrong);
-
-    const pill = document.createElement("span");
-    pill.className = `status-pill ${statusClass(provider.status)}`;
-    pill.textContent = provider.label;
-    title.appendChild(pill);
-
-    const meta = document.createElement("div");
-    meta.className = "provider-meta";
-    meta.textContent =
-      provider.kind === "local"
-        ? provider.base_url || "No local URL configured"
-        : provider.credential_env;
-
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "test-button";
-    button.textContent = provider.kind === "local" ? "Test" : "Refresh models";
-    button.addEventListener("click", () =>
-      testProvider(provider.provider_id, button),
-    );
-
-    card.append(title, meta, button);
-    grid.appendChild(card);
-  });
-}
-
-function updateProviderCard(providerId, status, label, metaText) {
-  const card = document.querySelector(`[data-provider="${providerId}"]`);
-  if (!card) return;
-  const pill = card.querySelector(".status-pill");
-  pill.className = `status-pill ${statusClass(status)}`;
-  pill.textContent = label;
-  if (metaText) {
-    card.querySelector(".provider-meta").textContent = metaText;
-  }
-}
-
-function renderSections(sections, fields) {
-  const fieldsBySection = new Map();
-  fields.forEach((field) => {
-    if (!fieldsBySection.has(field.section))
-      fieldsBySection.set(field.section, []);
-    fieldsBySection.get(field.section).push(field);
-  });
-
-  document.querySelectorAll("[data-section-ids]").forEach((container) => {
-    container.innerHTML = "";
-    const ids = container.dataset.sectionIds.split(",");
-    ids.forEach((id) => {
-      const section = sections.find((s) => s.id === id);
-      const sectionFields = fieldsBySection.get(id) || [];
-      if (!section || sectionFields.length === 0) return;
-      container.appendChild(renderSection(section, sectionFields));
-    });
-  });
-}
-
-function renderSidebar(sections) {
-  const nav = byId("sidebarNav");
-  if (!nav) return;
-  nav.innerHTML = "";
-
-  NAV_GROUPS.forEach((group) => {
-    const groupSections = group.sections
-      .map((id) => sections.find((s) => s.id === id))
-      .filter(Boolean);
-    if (groupSections.length === 0) return;
-
-    const details = document.createElement("details");
-    details.className = "nav-group";
-    details.open = true;
-
-    const summary = document.createElement("summary");
-    const icon = document.createElement("span");
-    icon.className = "group-icon";
-    icon.textContent = group.icon;
-    summary.appendChild(icon);
-    summary.append(group.label);
-    details.appendChild(summary);
-
-    groupSections.forEach((section) => {
-      const a = document.createElement("a");
-      a.className = "nav-item";
-      a.href = `#section-${section.id}`;
-      a.dataset.sectionId = section.id;
-      a.textContent = section.label;
-      a.addEventListener("click", (e) => {
-        e.preventDefault();
-        const target = byId(`section-${section.id}`);
-        if (target) {
-          target.scrollIntoView({ behavior: "smooth", block: "start" });
-          setActiveNav(section.id);
-        }
-        // Close mobile drawer on nav click
-        closeSidebar();
-      });
-      details.appendChild(a);
-    });
-
-    nav.appendChild(details);
-  });
-}
-
-function setActiveNav(sectionId) {
-  document.querySelectorAll(".nav-item").forEach((item) => {
-    item.classList.toggle("active", item.dataset.sectionId === sectionId);
-  });
-}
-
-function closeSidebar() {
-  byId("sidebar").classList.remove("open");
-  byId("sidebarOverlay").classList.remove("open");
-}
-
-function openSidebar() {
-  byId("sidebar").classList.add("open");
-  byId("sidebarOverlay").classList.add("open");
-}
-
-function setupScrollSpy() {
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const sectionId = entry.target.id.replace("section-", "");
-          setActiveNav(sectionId);
-        }
-      });
+    // === Init (auto-called by Alpine) ===
+    async init() {
+      await this.load();
     },
-    { rootMargin: "-20% 0px -70% 0px" },
-  );
 
-  document
-    .querySelectorAll("[id^='section-']")
-    .forEach((el) => observer.observe(el));
-}
+    async load() {
+      this.loading = true;
+      try {
+        const config = await api("/admin/api/config");
+        this.config = config;
+        this.sections = config.sections;
+        this.fields = config.fields;
+        this.providerStatus = config.provider_status;
 
-function setupSearch() {
-  const input = byId("sidebarSearch");
-  if (!input) return;
+        // Seed form values and originals for dirty tracking
+        const values = {};
+        const originals = {};
+        config.fields.forEach((f) => {
+          const val =
+            f.type === "secret" && f.configured ? MASKED_SECRET : f.value || "";
+          values[f.key] = val;
+          originals[f.key] = val;
+        });
+        this.fieldValues = values;
+        this.originals = originals;
 
-  input.addEventListener("input", () => {
-    const query = input.value.trim().toLowerCase();
-    document.querySelectorAll(".nav-item").forEach((item) => {
-      const match = !query || item.textContent.toLowerCase().includes(query);
-      item.style.display = match ? "" : "none";
-    });
-    // Show/hide groups based on visible children
-    document.querySelectorAll(".nav-group").forEach((group) => {
-      const visible = Array.from(group.querySelectorAll(".nav-item")).some(
-        (item) => item.style.display !== "none",
+        // Initialize showSecrets for each secret field
+        const secrets = {};
+        config.fields.filter((f) => f.type === "secret").forEach((f) => {
+          secrets[f.key] = false;
+        });
+        this.showSecrets = secrets;
+
+        // Set initial active section
+        const firstGroup = NAV_GROUPS.find((g) => g.sections.length > 0);
+        this.activeSection = firstGroup ? firstGroup.sections[0] : "";
+
+        // Load model options from server model cache (zero provider API calls)
+        try {
+          const status = await api("/admin/api/status");
+          const cached = status.cached_models || {};
+          this.modelOptions = Object.entries(cached)
+            .flatMap(([pid, models]) => models.map((m) => `${pid}/${m}`))
+            .sort();
+        } catch (_) {
+          /* status endpoint unavailable — datalist stays empty */
+        }
+
+        // Setup scroll spy once DOM is rendered
+        await this.$nextTick();
+        this.setupScrollSpy();
+
+        await this.refreshLocalStatus();
+      } catch (e) {
+        this.showToast(e.message, "error");
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // === Field helpers (used in Alpine templates) ===
+
+    fieldsForSection(sectionId) {
+      return this.fields.filter((f) => f.section === sectionId);
+    },
+
+    sectionsFor(ids) {
+      const idList = ids.split(",");
+      return this.sections.filter((s) => idList.includes(s.id));
+    },
+
+    navGroups() {
+      return NAV_GROUPS;
+    },
+
+    sectionFromId(id) {
+      return this.sections.find((s) => s.id === id);
+    },
+
+    sourceText(field) {
+      const parts = [];
+      const label = sourceLabel(field.source);
+      if (label) parts.push(label);
+      if (field.locked) parts.push("locked");
+      return parts.join(" ");
+    },
+
+    providerName,
+    statusClass,
+
+    // === Search (filters NAV_GROUPS by section label) ===
+
+    filteredNavGroups(query) {
+      if (!query) return NAV_GROUPS;
+      const q = query.toLowerCase();
+      return NAV_GROUPS
+        .map((g) => ({
+          ...g,
+          sections: g.sections.filter((id) => {
+            const s = this.sections.find((x) => x.id === id);
+            return s && s.label.toLowerCase().includes(q);
+          }),
+        }))
+        .filter((g) => g.sections.length > 0);
+    },
+
+    // === Dirty state ===
+
+    changedValues() {
+      const vals = {};
+      for (const key of Object.keys(this.fieldValues)) {
+        const val = this.fieldValues[key];
+        if (val === MASKED_SECRET) continue; // unchanged secret
+        if (val !== this.originals[key]) {
+          vals[key] = val;
+        }
+      }
+      return vals;
+    },
+
+    get dirtyCount() {
+      return Object.keys(this.changedValues()).length;
+    },
+
+    get dirtyText() {
+      const c = this.dirtyCount;
+      return c === 0
+        ? "No changes"
+        : `${c} unsaved change${c === 1 ? "" : "s"}`;
+    },
+
+    // === Form toggles ===
+
+    toggleField(key) {
+      this.fieldValues[key] =
+        this.fieldValues[key] === "true" ? "false" : "true";
+    },
+
+    // === Validate / Apply ===
+
+    async validate() {
+      return api("/admin/api/config/validate", {
+        method: "POST",
+        body: JSON.stringify({ values: this.changedValues() }),
+      }).catch((e) => ({ valid: false, errors: [e.message] }));
+    },
+
+    async validateAndShow() {
+      const result = await this.validate();
+      if (result.valid) {
+        this.showToast("Config shape is valid", "ok");
+      } else {
+        this.showToast(result.errors.join("; "), "error");
+      }
+    },
+
+    async apply() {
+      const result = await api("/admin/api/config/apply", {
+        method: "POST",
+        body: JSON.stringify({ values: this.changedValues() }),
+      }).catch((e) => ({ applied: false, errors: [e.message] }));
+
+      if (!result.applied) {
+        this.showToast(result.errors?.join("; ") || "Apply failed", "error");
+        return;
+      }
+
+      const restart = result.restart || {};
+      if (restart.required && restart.automatic) {
+        this.showToast("Applied. Restarting server...", "ok");
+        setTimeout(() => {
+          window.location.href = restart.admin_url || "/admin";
+        }, 1600);
+        return;
+      }
+
+      const pending = restart.required
+        ? restart.fields || []
+        : result.pending_fields || [];
+      await this.load();
+      this.showToast(
+        pending.length
+          ? `Applied. Restart fcc-server to use: ${pending.join(", ")}`
+          : "Applied",
+        "ok",
       );
-      group.style.display = visible || !query ? "" : "none";
-    });
-  });
+    },
 
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      input.value = "";
-      input.dispatchEvent(new Event("input"));
-      input.blur();
-    }
-  });
-}
+    // === Provider operations ===
 
-function setupMobileToggle() {
-  byId("hamburgerBtn")?.addEventListener("click", openSidebar);
-  byId("sidebarOverlay")?.addEventListener("click", closeSidebar);
-}
+    async refreshLocalStatus() {
+      try {
+        const result = await api("/admin/api/providers/local-status");
+        result.providers.forEach((p) => {
+          const card = this.providerStatus.find(
+            (x) => x.provider_id === p.provider_id,
+          );
+          if (card) {
+            card.status = p.status;
+            card.label = p.label;
+          }
+        });
+      } catch (_) {
+        /* non-critical */
+      }
+    },
 
-function renderSection(section, sectionFields) {
-  const sectionEl = document.createElement("section");
-  sectionEl.className = "settings-section";
-  sectionEl.id = `section-${section.id}`;
+    async testProvider(providerId) {
+      try {
+        const result = await api(
+          `/admin/api/providers/${providerId}/test`,
+          { method: "POST", body: "{}" },
+        );
+        const card = this.providerStatus.find(
+          (p) => p.provider_id === providerId,
+        );
+        if (!card) return;
 
-  const heading = document.createElement("div");
-  heading.className = "section-heading";
-  const headingText = document.createElement("div");
-  const headingTitle = document.createElement("h3");
-  headingTitle.textContent = section.label;
-  const headingDesc = document.createElement("p");
-  headingDesc.textContent = section.description;
-  headingText.append(headingTitle, headingDesc);
-  heading.appendChild(headingText);
-  sectionEl.appendChild(heading);
+        if (result.ok) {
+          card.status = "reachable";
+          card.label = `${result.models.length} models`;
+          this.modelOptions = Array.from(
+            new Set([
+              ...this.modelOptions,
+              ...result.models.map((m) => `${providerId}/${m}`),
+            ]),
+          ).sort();
+        } else {
+          card.status = "offline";
+          card.label = result.error_type;
+        }
+      } catch (e) {
+        this.showToast(e.message, "error");
+      }
+    },
 
-  const grid = document.createElement("div");
-  grid.className = "field-grid";
-  sectionFields.forEach((field) => grid.appendChild(renderField(field)));
-  sectionEl.appendChild(grid);
+    // === Navigation ===
 
-  if (sectionFields.some((field) => field.advanced)) {
-    const toggle = document.createElement("button");
-    toggle.type = "button";
-    toggle.className = "ghost-button advanced-toggle";
-    toggle.textContent = "Show advanced";
-    toggle.addEventListener("click", () => {
-      const showing = sectionEl.classList.toggle("show-advanced");
-      toggle.textContent = showing ? "Hide advanced" : "Show advanced";
-    });
-    sectionEl.appendChild(toggle);
-  }
+    scrollToSection(sectionId) {
+      const el = document.getElementById(`section-${sectionId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        this.activeSection = sectionId;
+      }
+      this.sidebarOpen = false;
+    },
 
-  return sectionEl;
-}
+    // === Scroll spy (IntersectionObserver) ===
 
-function renderField(field) {
-  const wrapper = document.createElement("div");
-  wrapper.className = `field${field.advanced ? " advanced-field" : ""}`;
-  wrapper.dataset.key = field.key;
-
-  const label = document.createElement("label");
-  label.htmlFor = `field-${field.key}`;
-  const labelText = document.createElement("span");
-  labelText.textContent = field.label;
-  label.appendChild(labelText);
-
-  const source = sourceText(field);
-  if (source) {
-    const sourceEl = document.createElement("span");
-    sourceEl.className = "field-source";
-    sourceEl.textContent = source;
-    label.appendChild(sourceEl);
-  }
-
-  const input = inputForField(field);
-  input.id = `field-${field.key}`;
-  input.dataset.key = field.key;
-  input.dataset.original = field.value || "";
-  input.dataset.secret = field.secret ? "true" : "false";
-  input.dataset.configured = field.configured ? "true" : "false";
-  input.disabled = field.locked;
-  input.addEventListener("input", updateDirtyState);
-  input.addEventListener("change", updateDirtyState);
-
-  wrapper.append(label, input);
-  if (field.description) {
-    const description = document.createElement("div");
-    description.className = "field-description";
-    description.textContent = field.description;
-    wrapper.appendChild(description);
-  }
-  return wrapper;
-}
-
-function inputForField(field) {
-  if (field.type === "boolean") {
-    const input = document.createElement("input");
-    input.type = "checkbox";
-    input.checked = String(field.value).toLowerCase() === "true";
-    input.dataset.original = input.checked ? "true" : "false";
-    return input;
-  }
-
-  if (field.type === "tri_boolean") {
-    const select = document.createElement("select");
-    [
-      ["", "Inherit"],
-      ["true", "Enabled"],
-      ["false", "Disabled"],
-    ].forEach(([value, label]) => select.appendChild(option(value, label)));
-    select.value = field.value || "";
-    return select;
-  }
-
-  if (field.type === "select") {
-    const select = document.createElement("select");
-    field.options.forEach((value) => select.appendChild(option(value, value)));
-    select.value = field.value || field.options[0] || "";
-    return select;
-  }
-
-  if (field.type === "textarea") {
-    const textarea = document.createElement("textarea");
-    textarea.value = field.value || "";
-    return textarea;
-  }
-
-  const input = document.createElement("input");
-  input.type = field.type === "number" ? "number" : "text";
-  if (field.type === "secret") {
-    input.type = "password";
-    input.placeholder = field.configured
-      ? "Configured - enter a new value to replace"
-      : "Not configured";
-    input.value = "";
-    input.autocomplete = "off";
-  } else {
-    input.value = field.value || "";
-  }
-  if (field.key.startsWith("MODEL")) {
-    input.setAttribute("list", "model-options");
-  }
-  return input;
-}
-
-function option(value, label) {
-  const optionEl = document.createElement("option");
-  optionEl.value = value;
-  optionEl.textContent = label;
-  return optionEl;
-}
-
-function readFieldValue(input) {
-  if (input.type === "checkbox") return input.checked ? "true" : "false";
-  if (input.dataset.secret === "true" && input.dataset.configured === "true") {
-    return input.value ? input.value : MASKED_SECRET;
-  }
-  return input.value;
-}
-
-function changedValues() {
-  const values = {};
-  document.querySelectorAll("[data-key]").forEach((input) => {
-    if (input.disabled || !input.matches("input, select, textarea")) return;
-    const value = readFieldValue(input);
-    if (value !== input.dataset.original) {
-      values[input.dataset.key] = value;
-    }
-  });
-  return values;
-}
-
-function updateDirtyState() {
-  const count = Object.keys(changedValues()).length;
-  byId("dirtyState").textContent =
-    count === 0
-      ? "No changes"
-      : `${count} unsaved change${count === 1 ? "" : "s"}`;
-  byId("applyButton").disabled = count === 0;
-}
-
-async function validate(showResult = true) {
-  const result = await api("/admin/api/config/validate", {
-    method: "POST",
-    body: JSON.stringify({ values: changedValues() }),
-  });
-  if (showResult) {
-    showValidationResult(result);
-  }
-  return result;
-}
-
-function showValidationResult(result) {
-  if (result.valid) {
-    showMessage("Config shape is valid", "ok");
-  } else {
-    showMessage(result.errors.join("; "), "error");
-  }
-}
-
-async function apply() {
-  const result = await api("/admin/api/config/apply", {
-    method: "POST",
-    body: JSON.stringify({ values: changedValues() }),
-  });
-  if (!result.applied) {
-    showValidationResult(result);
-    return;
-  }
-  const restart = result.restart || {};
-  if (restart.required && restart.automatic) {
-    showMessage("Applied. Restarting server...", "ok");
-    byId("applyButton").disabled = true;
-    setTimeout(() => {
-      window.location.href = restart.admin_url || "/admin";
-    }, 1600);
-    return;
-  }
-  const pending = restart.required
-    ? restart.fields || []
-    : result.pending_fields || [];
-  await load();
-  showMessage(
-    pending.length
-      ? `Applied. Restart fcc-server to use: ${pending.join(", ")}`
-      : "Applied",
-    "ok",
-  );
-}
-
-async function refreshLocalStatus() {
-  const result = await api("/admin/api/providers/local-status");
-  result.providers.forEach((provider) => {
-    state.localStatus.set(provider.provider_id, provider);
-    const meta = provider.status_code
-      ? `${provider.base_url} returned HTTP ${provider.status_code}`
-      : provider.base_url;
-    updateProviderCard(
-      provider.provider_id,
-      provider.status,
-      provider.label,
-      meta,
-    );
-  });
-}
-
-async function testProvider(providerId, button) {
-  const original = button.textContent;
-  button.disabled = true;
-  button.textContent = "Testing";
-  try {
-    const result = await api(`/admin/api/providers/${providerId}/test`, {
-      method: "POST",
-      body: "{}",
-    });
-    if (result.ok) {
-      updateProviderCard(
-        providerId,
-        "reachable",
-        `${result.models.length} models`,
-        result.models.slice(0, 3).join(", ") || "No models returned",
+    setupScrollSpy() {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const id = entry.target.id.replace("section-", "");
+              this.activeSection = id;
+            }
+          });
+        },
+        { rootMargin: "-20% 0px -70% 0px" },
       );
-      state.modelOptions = Array.from(
-        new Set([
-          ...state.modelOptions,
-          ...result.models.map((model) => `${providerId}/${model}`),
-        ]),
-      ).sort();
-      syncModelDatalist();
-    } else {
-      updateProviderCard(
-        providerId,
-        "offline",
-        result.error_type,
-        result.error_type,
+      document
+        .querySelectorAll("[id^='section-']")
+        .forEach((el) => observer.observe(el));
+    },
+
+    // === Advanced sections ===
+
+    hasAdvanced(sectionId) {
+      return this.fields.some(
+        (f) => f.section === sectionId && f.advanced,
       );
-    }
-  } finally {
-    button.disabled = false;
-    button.textContent = original;
-  }
+    },
+
+    // === Notifications ===
+
+    showToast(message, type = "success") {
+      this.toast = { show: true, message, type };
+      setTimeout(() => {
+        this.toast.show = false;
+      }, 3000);
+    },
+  };
 }
-
-function syncModelDatalist() {
-  let datalist = byId("model-options");
-  if (!datalist) {
-    datalist = document.createElement("datalist");
-    datalist.id = "model-options";
-    document.body.appendChild(datalist);
-  }
-  datalist.innerHTML = "";
-  state.modelOptions.forEach((model) =>
-    datalist.appendChild(option(model, model)),
-  );
-}
-
-function showMessage(message, kind = "") {
-  const area = byId("messageArea");
-  area.textContent = message;
-  area.className = `message-area ${kind}`.trim();
-}
-
-// Register once at module scope — not inside load() to avoid stacking on Apply
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") closeSidebar();
-});
-
-byId("validateButton").addEventListener("click", () => validate(true));
-byId("applyButton").addEventListener("click", apply);
-
-load().catch((error) => {
-  showMessage(error.message, "error");
-});
