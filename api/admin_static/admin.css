@@ -3,8 +3,6 @@
   --bg: #0c0c0d;
   --panel: #111113;
   --panel-strong: #19191c;
-  --card: #201d19;
-  --input: #12110f;
   --text: #f3eee7;
   --muted: #8b8b95;
   --line: #1f1f23;
@@ -35,7 +33,6 @@ button, input, select, textarea { font: inherit; }
 .app-shell {
   display: grid;
   grid-template-columns: 240px 1fr;
-  grid-template-rows: 1fr auto;
   min-height: 100vh;
 }
 
@@ -232,57 +229,37 @@ button, input, select, textarea { font: inherit; }
 
 /* ── Provider Strip ── */
 
-.provider-strip,
-.settings-section {
+.provider-strip {
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: var(--panel);
-  box-shadow: var(--shadow);
-}
-
-.provider-strip {
-  grid-column: 1 / -1;
   padding: 16px;
-}
-
-.strip-header,
-.section-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
 }
 
 .strip-header {
   margin-bottom: 12px;
 }
 
-.strip-header h3,
-.section-heading h3 {
+.strip-header h3 {
   margin: 0;
-  font-size: 16px;
-}
-
-.section-heading p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 12px;
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .provider-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 10px;
 }
+
+/* ── Provider Card ── */
 
 .provider-card {
   display: grid;
   gap: 8px;
-  min-height: 108px;
+  padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 12px;
-  background: var(--card);
+  background: transparent;
 }
 
 .provider-title {
@@ -294,6 +271,7 @@ button, input, select, textarea { font: inherit; }
 
 .provider-title strong {
   font-size: 14px;
+  font-weight: 600;
 }
 
 .provider-meta {
@@ -307,33 +285,33 @@ button, input, select, textarea { font: inherit; }
 .status-pill {
   display: inline-flex;
   align-items: center;
-  min-height: 30px;
+  min-height: 26px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  padding: 5px 10px;
+  padding: 3px 9px;
   background: var(--panel-strong);
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
 }
 
 .status-pill.ok {
   color: var(--ok);
-  background: rgba(47, 185, 132, 0.13);
-  border-color: rgba(89, 217, 148, 0.36);
+  background: rgba(89, 217, 148, 0.10);
+  border-color: rgba(89, 217, 148, 0.30);
 }
 
 .status-pill.warn {
   color: var(--warn);
-  background: rgba(245, 183, 79, 0.13);
-  border-color: rgba(245, 183, 79, 0.38);
+  background: rgba(245, 183, 79, 0.10);
+  border-color: rgba(245, 183, 79, 0.30);
 }
 
 .status-pill.error {
   color: var(--error);
-  background: rgba(255, 116, 108, 0.12);
-  border-color: rgba(255, 116, 108, 0.36);
+  background: rgba(255, 116, 108, 0.10);
+  border-color: rgba(255, 116, 108, 0.30);
 }
 
 /* ── Buttons ── */
@@ -348,6 +326,8 @@ button, input, select, textarea { font: inherit; }
   padding: 7px 12px;
   cursor: pointer;
   font-weight: 700;
+  font-size: 13px;
+  transition: border-color 150ms, background 150ms;
 }
 
 .ghost-button,
@@ -376,24 +356,35 @@ button, input, select, textarea { font: inherit; }
 .primary-button:disabled {
   cursor: not-allowed;
   border-color: var(--line);
-  background: #34302a;
-  color: #797067;
+  background: #2b2825;
+  color: #6b635a;
 }
 
 /* ── Form Sections ── */
 
-.form-sections {
-  display: grid;
-  gap: 18px;
+.form-sections > * + * {
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
 }
 
 .settings-section {
-  padding: 18px;
   scroll-margin-top: 20px;
 }
 
 .section-heading {
   margin-bottom: 16px;
+}
+
+.section-heading h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.section-heading p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .field-grid {
@@ -414,7 +405,7 @@ button, input, select, textarea { font: inherit; }
   justify-content: space-between;
   gap: 8px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .field-source {
@@ -429,10 +420,19 @@ button, input, select, textarea { font: inherit; }
   width: 100%;
   min-height: 38px;
   border: 1px solid var(--line-strong);
-  border-radius: 8px;
-  background: var(--input);
+  border-radius: 6px;
+  background: transparent;
   color: var(--text);
   padding: 8px 10px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 150ms;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--accent);
 }
 
 .field textarea {
@@ -443,14 +443,14 @@ button, input, select, textarea { font: inherit; }
 .field input:disabled,
 .field select:disabled,
 .field textarea:disabled {
-  background: #26231f;
-  color: #82796f;
+  background: #1a1a1d;
+  color: #6b635a;
 }
 
 .field-description {
   color: var(--muted);
   font-size: 12px;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 .field.advanced-field {
@@ -474,28 +474,28 @@ button, input, select, textarea { font: inherit; }
   bottom: 0;
   left: 0;
   z-index: 10;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(180px, auto) auto;
-  gap: 14px;
+  display: flex;
   align-items: center;
-  min-height: 72px;
+  gap: 14px;
+  min-height: 64px;
   border-top: 1px solid var(--line);
-  background: rgba(26, 24, 21, 0.94);
+  background: rgba(12, 12, 13, 0.94);
   padding: 12px 28px;
   backdrop-filter: blur(12px);
+  grid-column: 1 / -1;
 }
 
 .action-meta {
-  display: grid;
-  gap: 3px;
+  flex: 1;
   min-width: 0;
 }
 
-.action-meta strong,
-.action-meta span {
+.action-meta strong {
+  font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: 600;
 }
 
 .message-area {
@@ -504,13 +504,8 @@ button, input, select, textarea { font: inherit; }
   font-size: 13px;
 }
 
-.message-area.error {
-  color: var(--error);
-}
-
-.message-area.ok {
-  color: var(--ok);
-}
+.message-area.error { color: var(--error); }
+.message-area.ok { color: var(--ok); }
 
 .action-buttons {
   display: flex;
@@ -519,19 +514,15 @@ button, input, select, textarea { font: inherit; }
 
 /* ── Responsive ── */
 
-@media (max-width: 700px) {
-  .app-shell {
-    grid-template-columns: 1fr;
-  }
-
+@media (max-width: 768px) {
   .sidebar {
     position: fixed;
     top: 0;
     left: 0;
     z-index: 10;
     transform: translateX(-100%);
-    transition: transform 200ms ease;
-    height: 100vh;
+    transition: transform 250ms ease;
+    width: 280px;
   }
 
   .sidebar.open {
@@ -547,18 +538,17 @@ button, input, select, textarea { font: inherit; }
   }
 
   .main {
-    padding: 18px;
-    grid-column: 1;
+    grid-column: 1 / -1;
+    padding: 24px 18px;
   }
 
   .action-bar {
-    grid-template-columns: 1fr;
-    align-items: stretch;
     padding: 12px 18px;
+    flex-wrap: wrap;
   }
 
   .action-buttons {
-    justify-content: stretch;
+    flex: 1;
   }
 
   .action-buttons button {
