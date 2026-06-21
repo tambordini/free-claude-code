@@ -13,7 +13,6 @@
   --error: #ff746c;
   --ok: #59d994;
   --info: #7cc7ff;
-  --shadow: 0 14px 34px rgba(0, 0, 0, 0.38);
 }
 
 * { box-sizing: border-box; }
@@ -482,7 +481,6 @@ button, input, select, textarea { font: inherit; }
   background: rgba(12, 12, 13, 0.94);
   padding: 12px 28px;
   backdrop-filter: blur(12px);
-  grid-column: 1 / -1;
 }
 
 .action-meta {
