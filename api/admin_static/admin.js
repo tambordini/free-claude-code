@@ -19,6 +19,7 @@ async function api(path, options = {}) {
   if (!response.ok)
     throw new Error(`${response.status} ${response.statusText}`);
 
+
   return response.json();
 }
 
@@ -31,7 +32,9 @@ function sourceLabel(source) {
     explicit_env_file: "FCC_ENV_FILE",
     process: "process env",
   };
-  return Object.prototype.hasOwnProperty.call(labels, source) ? labels[source] : source;
+  return Object.prototype.hasOwnProperty.call(labels, source)
+    ? labels[source]
+    : source;
 }
 
 function providerName(providerId) {
@@ -91,6 +94,7 @@ function adminUi() {
 
 
 
+
     // === Init (auto-called by Alpine) ===
     async init() {
       await this.load();
@@ -127,6 +131,7 @@ function adminUi() {
             secrets[f.key] = false;
           });
 
+
         this.showSecrets = secrets;
 
         // Set initial active section
@@ -160,6 +165,7 @@ function adminUi() {
           },
           { deep: true },
         );
+
 
 
       } catch (e) {
@@ -200,9 +206,11 @@ function adminUi() {
     statusClass,
 
 
+
     errCls(key) {
       return this.validationErrors[key] ? "field-error" : "";
     },
+
 
 
     // === Search (filters NAV_GROUPS by section label) ===
@@ -217,6 +225,7 @@ function adminUi() {
           return s && s.label.toLowerCase().includes(q);
         }),
       })).filter((g) => g.sections.length > 0);
+
 
     },
 
@@ -284,6 +293,7 @@ function adminUi() {
         this.combos[fieldKey].idx = -1;
       }
 
+
     },
 
     // === Model combobox helpers ===
@@ -330,6 +340,7 @@ function adminUi() {
     async validateAndShow() {
       this.validationErrors = {};
 
+
       const result = await this.validate();
       if (result.valid) {
         this.showToast("Config shape is valid", "ok");
@@ -344,12 +355,14 @@ function adminUi() {
           }
         });
 
+
         this.showToast(result.errors.join("; "), "error");
       }
     },
 
     async apply() {
       this.validationErrors = {};
+
 
       const result = await api("/admin/api/config/apply", {
         method: "POST",
@@ -448,6 +461,7 @@ function adminUi() {
 
     hasAdvanced(sectionId) {
       return this.fields.some((f) => f.section === sectionId && f.advanced);
+
 
     },
 

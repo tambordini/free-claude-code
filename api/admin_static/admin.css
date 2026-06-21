@@ -1,4 +1,14 @@
-:root { color-scheme: dark; }
+:root {
+  color-scheme: dark;
+}
+
+/* Field-level validation error — !important overrides Tailwind CDN */
+.field-error {
+  border-color: #ff746c !important;
+}
+.field-error:focus {
+  border-color: #ff746c !important;
+}
 
 /* Inter font — loaded from Google Fonts in index.html */
 body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
@@ -8,6 +18,7 @@ body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
 .main::-webkit-scrollbar { width: 6px; }
 .sidebar-nav::-webkit-scrollbar-track,
 .main::-webkit-scrollbar-track { background: transparent; }
+
 .sidebar-nav::-webkit-scrollbar-thumb,
 .main::-webkit-scrollbar-thumb { background: #27272a; border-radius: 3px; }
 
@@ -59,6 +70,7 @@ body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
 
 /* ── Alpine cloak ── */
 [x-cloak] { display: none !important; }
+
 
 
 
