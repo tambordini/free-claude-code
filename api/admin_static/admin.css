@@ -1,38 +1,59 @@
-:root {
-  color-scheme: dark;
-}
+:root { color-scheme: dark; }
 
-/* Field-level validation error — !important overrides Tailwind CDN */
-.field-error {
-  border-color: #ff746c !important;
-}
-.field-error:focus {
-  border-color: #ff746c !important;
-}
+/* Inter font — loaded from Google Fonts in index.html */
+body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
 
-/* Custom scrollbar — Tailwind can't do this */
+/* ── Custom scrollbar ── */
 .sidebar-nav::-webkit-scrollbar,
-.main::-webkit-scrollbar {
-  width: 6px;
-}
-
+.main::-webkit-scrollbar { width: 6px; }
 .sidebar-nav::-webkit-scrollbar-track,
-.main::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+.main::-webkit-scrollbar-track { background: transparent; }
 .sidebar-nav::-webkit-scrollbar-thumb,
-.main::-webkit-scrollbar-thumb {
-  background: #2b2b30;
-  border-radius: 3px;
+.main::-webkit-scrollbar-thumb { background: #27272a; border-radius: 3px; }
+
+/* ── Section heading accent bar ── */
+.section-heading { position: relative; padding-top: 0.625rem; }
+.section-heading::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2.25rem;
+  height: 3px;
+  background: #22c55e;
+  border-radius: 999px;
 }
 
-/* Remove native <details> disclosure triangle */
-.nav-group summary::-webkit-details-marker {
-  display: none;
+/* ── Settings section card ── */
+.settings-section {
+  background: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.settings-section:hover {
+  border-color: #3f3f46;
+  box-shadow: 0 1px 12px rgba(0,0,0,.2);
 }
 
-/* Alpine cloak — hide until ready */
-[x-cloak] {
-  display: none !important;
+/* ── Validation error ── */
+.field-error { border-color: #ef4444 !important; }
+.field-error:focus {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 2px rgba(239,68,68,.2) !important;
 }
+
+/* ── Provider card ── */
+.provider-card {
+  transition: border-color .15s ease, transform .15s ease;
+}
+.provider-card:hover {
+  transform: translateY(-1px);
+}
+
+/* ── Remove native <details> disclosure ── */
+.nav-group summary::-webkit-details-marker { display: none; }
+
+/* ── Alpine cloak ── */
+[x-cloak] { display: none !important; }

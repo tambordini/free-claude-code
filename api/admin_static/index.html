@@ -6,6 +6,14 @@
     <title>Free Claude Code Admin</title>
     <link rel="icon" href="data:," />
 
+    <!-- Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
     <!-- Tailwind CSS v4 browser build (runtime, no build step) -->
     <script
       src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1"
@@ -25,7 +33,7 @@
   </head>
   <body
     x-data="adminUi()"
-    class="h-full bg-[#0c0c0d] text-[#f3eee7] font-sans antialiased"
+    class="h-full bg-zinc-950 text-zinc-100 font-sans antialiased"
     @keydown.escape.window="sidebarOpen = false"
   >
     <!-- ── Toast notification ── -->
@@ -37,8 +45,8 @@
       x-transition:leave="transition ease-in duration-200"
       x-transition:leave-start="opacity-100 translate-y-0"
       x-transition:leave-end="opacity-0 translate-y-2"
-      class="fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-bold flex items-center gap-2 cursor-pointer"
-      :class="toast.type === 'success' ? 'bg-[#2fb984] text-black' : toast.type === 'error' ? 'bg-[#ff746c] text-black' : 'bg-[#19191c] text-white border border-[#2b2b30]'"
+      class="fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-2xl text-sm font-semibold flex items-center gap-2 cursor-pointer"
+      :class="toast.type === 'success' ? 'bg-green-500 text-zinc-950' : toast.type === 'error' ? 'bg-red-500 text-white' : 'bg-zinc-900 text-zinc-300 border border-zinc-700'"
       @click="toast.show = false"
       x-text="toast.message"
     ></div>
@@ -52,7 +60,7 @@
       x-transition:leave="transition ease-in duration-150"
       x-transition:leave-start="opacity-100"
       x-transition:leave-end="opacity-0"
-      class="fixed inset-0 z-10 bg-black/60 lg:hidden"
+      class="fixed inset-0 z-10 bg-black/50 lg:hidden"
       @click="sidebarOpen = false"
     ></div>
 
@@ -60,26 +68,43 @@
     <div class="flex h-full">
       <!-- ══════════════════ SIDEBAR ══════════════════ -->
       <aside
-        class="fixed lg:static inset-y-0 left-0 z-20 w-60 shrink-0 flex flex-col border-r border-[#1f1f23] bg-[#0c0c0d] -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-in-out"
+        class="fixed lg:static inset-y-0 left-0 z-20 w-60 shrink-0 flex flex-col border-r border-zinc-800 bg-zinc-950 -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-in-out"
         :class="sidebarOpen ? 'translate-x-0 shadow-2xl' : ''"
       >
         <!-- Brand -->
-        <div class="p-4 border-b border-[#1f1f23]">
-          <div class="flex items-center gap-2.5 mb-3">
+        <div class="p-4 border-b border-zinc-800">
+          <div class="flex items-center gap-3 mb-4">
             <div
-              class="w-8 h-8 rounded-lg bg-[#2fb984] grid place-items-center text-black font-extrabold text-xs"
+              class="w-8 h-8 rounded-lg bg-gradient-to-br from-green-400 to-green-600 grid place-items-center text-zinc-950 font-extrabold text-xs shadow-sm shadow-green-500/20"
             >
               FC
             </div>
-            <span class="font-bold text-sm text-white">Free Claude Code</span>
+            <span class="font-bold text-sm text-zinc-100 tracking-tight"
+              >Free Claude Code</span
+            >
           </div>
           <!-- Search -->
-          <input
-            type="search"
-            x-model="searchQuery"
-            placeholder="Search sections…"
-            class="w-full h-9 px-3 rounded-md border border-[#2b2b30] bg-transparent text-sm text-[#f3eee7] placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors"
-          />
+          <div class="relative">
+            <svg
+              class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500 pointer-events-none"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              type="search"
+              x-model="searchQuery"
+              placeholder="Search sections…"
+              class="w-full h-9 pl-9 pr-3 rounded-lg border border-zinc-800 bg-zinc-900/50 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/20 transition-all"
+            />
+          </div>
         </div>
 
         <!-- Nav groups -->
@@ -90,7 +115,7 @@
           >
             <details class="nav-group" open>
               <summary
-                class="flex items-center gap-2 px-2 py-1.5 rounded-md text-[10px] font-bold text-[#8b8b95] uppercase tracking-wider cursor-pointer hover:text-white hover:bg-white/5 transition-colors"
+                class="flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-[10px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:text-zinc-300 hover:bg-zinc-800/30 transition-colors"
               >
                 <span class="text-sm lowercase" x-text="group.icon"></span>
                 <span x-text="group.label"></span>
@@ -99,8 +124,8 @@
                 <template x-if="sectionFromId(secId)">
                   <a
                     href="#"
-                    class="block px-2 py-1.5 ml-5 rounded-md text-sm text-[#8b8b95] hover:text-white hover:bg-white/5 transition-colors"
-                    :class="activeSection === secId ? 'text-[#2fb984] bg-[#2fb984]/10 font-semibold' : ''"
+                    class="block px-2 py-1.5 ml-6 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/30 transition-colors"
+                    :class="activeSection === secId ? 'text-green-400 bg-green-500/10 font-semibold' : ''"
                     x-text="sectionFromId(secId).label"
                     @click.prevent="scrollToSection(secId)"
                   ></a>
@@ -115,19 +140,21 @@
       <main class="flex-1 flex flex-col min-w-0">
         <!-- Mobile topbar -->
         <div
-          class="flex lg:hidden items-center justify-between px-4 py-2.5 border-b border-[#1f1f23] bg-[#0c0c0d]"
+          class="flex lg:hidden items-center justify-between px-4 py-2.5 border-b border-zinc-800 bg-zinc-950"
         >
           <div class="flex items-center gap-2.5">
             <div
-              class="w-7 h-7 rounded-lg bg-[#2fb984] grid place-items-center text-black font-extrabold text-[11px]"
+              class="w-7 h-7 rounded-lg bg-gradient-to-br from-green-400 to-green-600 grid place-items-center text-zinc-950 font-extrabold text-[11px]"
             >
               FC
             </div>
-            <span class="font-bold text-sm text-white">Free Claude Code</span>
+            <span class="font-bold text-sm text-zinc-100"
+              >Free Claude Code</span
+            >
           </div>
           <button
             type="button"
-            class="px-2 py-1 rounded border border-[#2b2b30] text-lg text-white"
+            class="px-2 py-1 rounded-lg border border-zinc-800 text-lg text-zinc-300 hover:text-zinc-100 hover:border-zinc-700 transition-colors"
             @click="sidebarOpen = !sidebarOpen"
             aria-label="Toggle menu"
           >
@@ -137,29 +164,39 @@
 
         <!-- Scrollable content area -->
         <div class="flex-1 overflow-y-auto main">
-          <div class="p-5 lg:p-10 space-y-8 pb-28">
+          <div class="max-w-full mx-auto p-5 lg:p-10 space-y-8 pb-28">
             <!-- ── Loading skeleton ── -->
             <div x-show="loading" class="space-y-6 animate-pulse">
-              <div class="space-y-2">
-                <div class="h-4 bg-[#1f1f23] rounded w-48"></div>
-                <div class="h-3 bg-[#1f1f23] rounded w-72"></div>
+              <div
+                class="space-y-3 rounded-xl border border-zinc-800 bg-zinc-900 p-6"
+              >
+                <div class="h-5 bg-zinc-800 rounded w-48"></div>
+                <div class="h-3 bg-zinc-800 rounded w-72"></div>
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="h-10 bg-zinc-800 rounded-lg"></div>
+                  <div class="h-10 bg-zinc-800 rounded-lg"></div>
+                </div>
+                <div class="h-10 bg-zinc-800 rounded-lg"></div>
               </div>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="h-10 bg-[#1f1f23] rounded"></div>
-                <div class="h-10 bg-[#1f1f23] rounded"></div>
+              <div
+                class="space-y-3 rounded-xl border border-zinc-800 bg-zinc-900 p-6"
+              >
+                <div class="h-5 bg-zinc-800 rounded w-56"></div>
+                <div class="h-3 bg-zinc-800 rounded w-64"></div>
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="h-10 bg-zinc-800 rounded-lg"></div>
+                  <div class="h-10 bg-zinc-800 rounded-lg"></div>
+                </div>
               </div>
-              <div class="h-10 bg-[#1f1f23] rounded"></div>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="h-10 bg-[#1f1f23] rounded"></div>
-                <div class="h-10 bg-[#1f1f23] rounded"></div>
-              </div>
-              <div class="rounded-lg border border-[#1f1f23] p-4 space-y-3">
-                <div class="h-4 bg-[#1f1f23] rounded w-24"></div>
+              <div
+                class="rounded-xl border border-zinc-800 bg-zinc-900 p-5 space-y-3"
+              >
+                <div class="h-4 bg-zinc-800 rounded w-24"></div>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div class="h-24 bg-[#1f1f23] rounded"></div>
-                  <div class="h-24 bg-[#1f1f23] rounded"></div>
-                  <div class="h-24 bg-[#1f1f23] rounded"></div>
-                  <div class="h-24 bg-[#1f1f23] rounded"></div>
+                  <div class="h-24 bg-zinc-800 rounded-lg"></div>
+                  <div class="h-24 bg-zinc-800 rounded-lg"></div>
+                  <div class="h-24 bg-zinc-800 rounded-lg"></div>
+                  <div class="h-24 bg-zinc-800 rounded-lg"></div>
                 </div>
               </div>
             </div>
@@ -172,17 +209,17 @@
                 :key="section.id"
               >
                 <div class="settings-section" :id="'section-' + section.id">
-                  <div class="section-heading mb-4">
+                  <div class="section-heading mb-5">
                     <h2
-                      class="text-lg font-bold text-white"
+                      class="text-lg font-bold text-zinc-100 tracking-tight"
                       x-text="section.label"
                     ></h2>
                     <p
-                      class="text-xs text-[#8b8b95] mt-0.5"
+                      class="text-xs text-zinc-500 mt-1 leading-relaxed"
                       x-text="section.description"
                     ></p>
                   </div>
-                  <div class="field-grid grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="field-grid grid grid-cols-1 md:grid-cols-2 gap-5">
                     <template
                       x-for="field in fieldsForSection(section.id)"
                       :key="field.key"
@@ -194,11 +231,11 @@
                           <!-- Label -->
                           <label
                             :for="'fld-' + field.key"
-                            class="flex items-center justify-between text-sm font-semibold"
+                            class="flex items-center justify-between text-sm font-semibold text-zinc-200"
                           >
                             <span x-text="field.label"></span>
                             <span
-                              class="text-[10px] text-[#8b8b95] font-normal"
+                              class="text-[10px] text-zinc-500 font-normal"
                               x-text="sourceText(field)"
                             ></span>
                           </label>
@@ -224,11 +261,11 @@
                                 @keydown.escape="combos[field.key] && (combos[field.key].open = false)"
                                 autocomplete="off"
                                 :class="errCls(field.key)"
-                                class="w-full h-10 px-3 pr-9 rounded-lg border border-[#2b2b30] bg-[#121214] text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] focus:ring-1 focus:ring-[#2fb984]/30 transition-all disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                                class="w-full h-9 px-3 pr-9 rounded-lg border border-zinc-700 bg-zinc-900/70 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/30 transition-all disabled:cursor-not-allowed disabled:bg-zinc-900 disabled:text-zinc-600"
                               />
                               <svg
-                                class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b635a] pointer-events-none transition-transform"
-                                :class="combos[field.key]?.open ? 'rotate-180 text-[#2fb984]' : ''"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none transition-transform"
+                                :class="combos[field.key]?.open ? 'rotate-180 text-green-400' : ''"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -243,7 +280,7 @@
                               <div
                                 x-show="combos[field.key]?.open && filteredModels(field.key).length > 0"
                                 x-cloak
-                                class="absolute top-full left-0 right-0 z-50 mt-1 max-h-56 overflow-y-auto rounded-lg border border-[#2b2b30] bg-[#19191c] shadow-xl shadow-black/40"
+                                class="absolute top-full left-0 right-0 z-50 mt-1 max-h-56 overflow-y-auto rounded-xl border border-zinc-700 bg-zinc-900 shadow-2xl shadow-black/50"
                               >
                                 <template
                                   x-for="(m, i) in filteredModels(field.key)"
@@ -252,11 +289,11 @@
                                   <div
                                     @click="selectModel(field.key, m)"
                                     @mouseenter="combos[field.key] = combos[field.key] || {open:true,idx:-1}; combos[field.key].idx = i"
-                                    class="flex items-center gap-1.5 px-3 py-2.5 text-sm cursor-pointer border-b border-[#1f1f23] last:border-b-0 transition-colors"
-                                    :class="i === combos[field.key]?.idx ? 'bg-[#2fb984]/15 text-white' : 'text-[#c5c2bd] hover:bg-white/[0.04]'"
+                                    class="flex items-center gap-1.5 px-3 py-2.5 text-sm cursor-pointer border-b border-zinc-800 last:border-b-0 transition-colors"
+                                    :class="i === combos[field.key]?.idx ? 'bg-green-500/15 text-zinc-100' : 'text-zinc-300 hover:bg-zinc-800/30'"
                                   >
                                     <span
-                                      class="text-[#2fb984] font-medium shrink-0"
+                                      class="text-green-400 font-medium shrink-0"
                                       x-text="m.split('/')[0] + '/'"
                                     ></span>
                                     <span
@@ -266,7 +303,7 @@
                                   </div>
                                 </template>
                                 <div
-                                  class="px-3 py-1.5 text-[10px] text-[#6b635a] border-t border-[#1f1f23]"
+                                  class="px-3 py-1.5 text-[10px] text-zinc-500 border-t border-zinc-800"
                                   x-text="filteredModels(field.key).length + ' model' + (filteredModels(field.key).length === 1 ? '' : 's')"
                                 ></div>
                               </div>
@@ -283,7 +320,7 @@
                               x-model="fieldValues[field.key]"
                               :disabled="field.locked"
                               :class="errCls(field.key)"
-                              class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                              class="w-full h-9 px-3 rounded-lg border border-zinc-700 bg-zinc-900/50 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/30 transition-all disabled:cursor-not-allowed disabled:bg-zinc-900 disabled:text-zinc-600"
                             />
                           </template>
 
@@ -298,11 +335,11 @@
                                 :disabled="field.locked"
                                 autocomplete="off"
                                 :class="errCls(field.key)"
-                                class="w-full h-10 px-3 pr-10 rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                                class="w-full h-9 px-3 pr-10 rounded-lg border border-zinc-700 bg-zinc-900/50 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/30 transition-all disabled:cursor-not-allowed disabled:bg-zinc-900 disabled:text-zinc-600"
                               />
                               <button
                                 type="button"
-                                class="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-[#8b8b95] hover:text-white transition-colors"
+                                class="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
                                 @click="showSecrets[field.key] = !showSecrets[field.key]"
                                 x-text="showSecrets[field.key] ? '🙈' : '👁️'"
                               ></button>
@@ -317,11 +354,11 @@
                               :aria-checked="fieldValues[field.key] === 'true'"
                               @click="toggleField(field.key)"
                               :disabled="field.locked"
-                              class="relative inline-flex h-6 w-11 items-center rounded-full border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#2fb984]/50 disabled:cursor-not-allowed disabled:opacity-50"
-                              :class="fieldValues[field.key] === 'true' ? 'bg-[#2fb984] border-[#2fb984]' : 'bg-[#19191c] border-[#2b2b30]'"
+                              class="relative inline-flex h-6 w-11 items-center rounded-full border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/40 disabled:cursor-not-allowed disabled:opacity-50"
+                              :class="fieldValues[field.key] === 'true' ? 'bg-green-500 border-green-500' : 'bg-zinc-800 border-zinc-700'"
                             >
                               <span
-                                class="inline-block h-4 w-4 rounded-full bg-white transition-transform duration-200"
+                                class="inline-block h-4 w-4 rounded-full bg-white transition-transform duration-200 shadow-sm"
                                 :class="fieldValues[field.key] === 'true' ? 'translate-x-[22px]' : 'translate-x-[3px]'"
                               ></span>
                             </button>
@@ -334,14 +371,14 @@
                                 x-model="fieldValues[field.key]"
                                 :disabled="field.locked"
                                 :class="errCls(field.key)"
-                                class="w-full h-10 pl-3 pr-9 rounded-lg border border-[#2b2b30] bg-[#121214] text-sm text-white outline-none focus:border-[#2fb984] focus:ring-1 focus:ring-[#2fb984]/30 transition-all appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                                class="w-full h-9 pl-3 pr-9 rounded-lg border border-zinc-700 bg-zinc-900/70 text-sm text-zinc-100 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/30 transition-all appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                               >
                                 <option value="">Inherit</option>
                                 <option value="true">Enabled</option>
                                 <option value="false">Disabled</option>
                               </select>
                               <svg
-                                class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b635a] pointer-events-none"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -363,7 +400,7 @@
                                 x-model="fieldValues[field.key]"
                                 :disabled="field.locked"
                                 :class="errCls(field.key)"
-                                class="w-full h-10 pl-3 pr-9 rounded-lg border border-[#2b2b30] bg-[#121214] text-sm text-white outline-none focus:border-[#2fb984] focus:ring-1 focus:ring-[#2fb984]/30 transition-all appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                                class="w-full h-9 pl-3 pr-9 rounded-lg border border-zinc-700 bg-zinc-900/70 text-sm text-zinc-100 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/30 transition-all appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                               >
                                 <template
                                   x-for="opt in field.options"
@@ -373,7 +410,7 @@
                                 </template>
                               </select>
                               <svg
-                                class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b635a] pointer-events-none"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -395,19 +432,19 @@
                               x-model="fieldValues[field.key]"
                               :disabled="field.locked"
                               :class="errCls(field.key)"
-                              class="w-full rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors p-3 min-h-[90px] resize-y disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                              class="w-full rounded-lg border border-zinc-700 bg-zinc-900/50 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/30 transition-all p-3 min-h-[90px] resize-y disabled:cursor-not-allowed disabled:bg-zinc-900 disabled:text-zinc-600"
                             ></textarea>
                           </template>
 
                           <!-- description -->
                           <p
                             x-show="field.description"
-                            class="text-xs text-[#8b8b95]"
+                            class="text-xs text-zinc-500 leading-relaxed"
                             x-text="field.description"
                           ></p>
                           <p
                             x-show="validationErrors[field.key]"
-                            class="text-xs text-[#ff746c]"
+                            class="text-xs text-red-400"
                             x-text="validationErrors[field.key]"
                           ></p>
                         </div>
@@ -419,53 +456,49 @@
                     x-show="hasAdvanced(section.id)"
                     type="button"
                     @click="showAdvanced[section.id] = !showAdvanced[section.id]"
-                    class="mt-4 px-3 py-1.5 rounded-md border border-[#2b2b30] text-xs font-bold text-[#8b8b95] hover:text-white hover:border-[#2fb984] transition-colors bg-[#19191c]"
+                    class="mt-5 px-3 py-1.5 rounded-lg border border-zinc-700 text-xs font-semibold text-zinc-400 hover:text-zinc-100 hover:border-zinc-500 transition-colors bg-zinc-900"
                     x-text="showAdvanced[section.id] ? 'Hide advanced' : 'Show advanced'"
                   ></button>
                 </div>
               </template>
 
               <!-- ── Provider strip ── -->
-              <section
-                class="border border-[#1f1f23] rounded-lg p-4 space-y-3"
-                aria-label="Provider status"
-              >
-                <div class="flex items-center justify-between">
-                  <h3 class="text-sm font-bold text-white">Providers</h3>
-                  <button
-                    type="button"
-                    class="text-xs text-[#2fb984] hover:text-white transition-colors"
-                    @click="showToast('Refreshing provider status…')"
-                  >
-                    Refresh all
-                  </button>
+              <section class="settings-section" aria-label="Provider status">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-sm font-bold text-zinc-100 tracking-tight">
+                    Providers
+                  </h3>
+                  <span
+                    class="text-[10px] text-zinc-500"
+                    x-text="providerStatus.length + ' configured'"
+                  ></span>
                 </div>
                 <div
                   class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"
                 >
                   <template x-for="p in providerStatus" :key="p.provider_id">
                     <div
-                      class="border border-[#1f1f23] rounded-lg p-3 space-y-2 hover:border-[#2b2b30] transition-colors"
+                      class="provider-card border border-zinc-800 rounded-xl p-3.5 space-y-2.5 hover:border-zinc-700 bg-zinc-900/30"
                     >
                       <div class="flex items-center justify-between gap-2">
                         <span
-                          class="text-sm font-semibold text-white truncate"
+                          class="text-sm font-semibold text-zinc-100 truncate"
                           x-text="providerName(p.provider_id)"
                         ></span>
                         <span
-                          class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full border"
-                          :class="statusClass(p.status) === 'ok' ? 'text-[#59d994] border-[#59d994]/30 bg-[#59d994]/10' : statusClass(p.status) === 'warn' ? 'text-[#f5b74f] border-[#f5b74f]/30 bg-[#f5b74f]/10' : statusClass(p.status) === 'error' ? 'text-[#ff746c] border-[#ff746c]/30 bg-[#ff746c]/10' : 'text-[#8b8b95] border-[#2b2b30] bg-[#19191c]'"
+                          class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full"
+                          :class="statusClass(p.status) === 'ok' ? 'text-green-400 border border-green-500/30 bg-green-500/10' : statusClass(p.status) === 'warn' ? 'text-amber-400 border border-amber-500/30 bg-amber-500/10' : statusClass(p.status) === 'error' ? 'text-red-400 border border-red-500/30 bg-red-500/10' : 'text-zinc-500 border border-zinc-700 bg-zinc-800'"
                           x-text="p.label"
                         ></span>
                       </div>
                       <div
-                        class="text-xs text-[#8b8b95] truncate"
+                        class="text-xs text-zinc-500 truncate"
                         x-text="p.kind === 'local' ? (p.base_url || 'No local URL configured') : (p.credential_env || '')"
                       ></div>
                       <button
                         type="button"
-                        class="text-xs text-[#8b8b95] hover:text-white transition-colors"
                         @click="testProvider(p.provider_id)"
+                        class="text-xs text-zinc-500 hover:text-zinc-300 transition-colors font-medium"
                         x-text="p.kind === 'local' ? 'Test' : 'Refresh models'"
                       ></button>
                     </div>
@@ -479,17 +512,17 @@
                 :key="'cfg-' + section.id"
               >
                 <div class="settings-section" :id="'section-' + section.id">
-                  <div class="section-heading mb-4">
+                  <div class="section-heading mb-5">
                     <h2
-                      class="text-lg font-bold text-white"
+                      class="text-lg font-bold text-zinc-100 tracking-tight"
                       x-text="section.label"
                     ></h2>
                     <p
-                      class="text-xs text-[#8b8b95] mt-0.5"
+                      class="text-xs text-zinc-500 mt-1 leading-relaxed"
                       x-text="section.description"
                     ></p>
                   </div>
-                  <div class="field-grid grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="field-grid grid grid-cols-1 md:grid-cols-2 gap-5">
                     <!-- Same field type template as above -->
                     <template
                       x-for="field in fieldsForSection(section.id)"
@@ -501,11 +534,11 @@
                         <div class="space-y-1.5">
                           <label
                             :for="'fld-' + field.key"
-                            class="flex items-center justify-between text-sm font-semibold"
+                            class="flex items-center justify-between text-sm font-semibold text-zinc-200"
                           >
                             <span x-text="field.label"></span>
                             <span
-                              class="text-[10px] text-[#8b8b95] font-normal"
+                              class="text-[10px] text-zinc-500 font-normal"
                               x-text="sourceText(field)"
                             ></span>
                           </label>
@@ -520,7 +553,7 @@
                               :disabled="field.locked"
                               :list="field.key.startsWith('MODEL') ? 'model-options' : ''"
                               :class="errCls(field.key)"
-                              class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                              class="w-full h-9 px-3 rounded-lg border border-zinc-700 bg-zinc-900/50 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/30 transition-all disabled:cursor-not-allowed disabled:bg-zinc-900 disabled:text-zinc-600"
                             />
                           </template>
 
@@ -534,11 +567,11 @@
                                 :disabled="field.locked"
                                 autocomplete="off"
                                 :class="errCls(field.key)"
-                                class="w-full h-10 px-3 pr-10 rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                                class="w-full h-9 px-3 pr-10 rounded-lg border border-zinc-700 bg-zinc-900/50 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/30 transition-all disabled:cursor-not-allowed disabled:bg-zinc-900 disabled:text-zinc-600"
                               />
                               <button
                                 type="button"
-                                class="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-[#8b8b95] hover:text-white transition-colors"
+                                class="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
                                 @click="showSecrets[field.key] = !showSecrets[field.key]"
                                 x-text="showSecrets[field.key] ? '🙈' : '👁️'"
                               ></button>
@@ -552,11 +585,11 @@
                               :aria-checked="fieldValues[field.key] === 'true'"
                               @click="toggleField(field.key)"
                               :disabled="field.locked"
-                              class="relative inline-flex h-6 w-11 items-center rounded-full border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#2fb984]/50 disabled:cursor-not-allowed disabled:opacity-50"
-                              :class="fieldValues[field.key] === 'true' ? 'bg-[#2fb984] border-[#2fb984]' : 'bg-[#19191c] border-[#2b2b30]'"
+                              class="relative inline-flex h-6 w-11 items-center rounded-full border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/40 disabled:cursor-not-allowed disabled:opacity-50"
+                              :class="fieldValues[field.key] === 'true' ? 'bg-green-500 border-green-500' : 'bg-zinc-800 border-zinc-700'"
                             >
                               <span
-                                class="inline-block h-4 w-4 rounded-full bg-white transition-transform duration-200"
+                                class="inline-block h-4 w-4 rounded-full bg-white transition-transform duration-200 shadow-sm"
                                 :class="fieldValues[field.key] === 'true' ? 'translate-x-[22px]' : 'translate-x-[3px]'"
                               ></span>
                             </button>
@@ -567,7 +600,7 @@
                               x-model="fieldValues[field.key]"
                               :disabled="field.locked"
                               :class="errCls(field.key)"
-                              class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-[#0c0c0d] text-sm text-white outline-none focus:border-[#2fb984] transition-colors appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                              class="w-full h-9 px-3 rounded-lg border border-zinc-700 bg-zinc-900/50 text-sm text-zinc-100 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/30 transition-all appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               <option value="">Inherit</option>
                               <option value="true">Enabled</option>
@@ -580,7 +613,7 @@
                               x-model="fieldValues[field.key]"
                               :disabled="field.locked"
                               :class="errCls(field.key)"
-                              class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-[#0c0c0d] text-sm text-white outline-none focus:border-[#2fb984] transition-colors appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                              class="w-full h-9 px-3 rounded-lg border border-zinc-700 bg-zinc-900/50 text-sm text-zinc-100 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/30 transition-all appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               <template x-for="opt in field.options" :key="opt">
                                 <option :value="opt" x-text="opt"></option>
@@ -594,18 +627,18 @@
                               x-model="fieldValues[field.key]"
                               :disabled="field.locked"
                               :class="errCls(field.key)"
-                              class="w-full rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors p-3 min-h-[90px] resize-y disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                              class="w-full rounded-lg border border-zinc-700 bg-zinc-900/50 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/30 transition-all p-3 min-h-[90px] resize-y disabled:cursor-not-allowed disabled:bg-zinc-900 disabled:text-zinc-600"
                             ></textarea>
                           </template>
 
                           <p
                             x-show="field.description"
-                            class="text-xs text-[#8b8b95]"
+                            class="text-xs text-zinc-500 leading-relaxed"
                             x-text="field.description"
                           ></p>
                           <p
                             x-show="validationErrors[field.key]"
-                            class="text-xs text-[#ff746c]"
+                            class="text-xs text-red-400"
                             x-text="validationErrors[field.key]"
                           ></p>
                         </div>
@@ -616,7 +649,7 @@
                     x-show="hasAdvanced(section.id)"
                     type="button"
                     @click="showAdvanced[section.id] = !showAdvanced[section.id]"
-                    class="mt-4 px-3 py-1.5 rounded-md border border-[#2b2b30] text-xs font-bold text-[#8b8b95] hover:text-white hover:border-[#2fb984] transition-colors bg-[#19191c]"
+                    class="mt-5 px-3 py-1.5 rounded-lg border border-zinc-700 text-xs font-semibold text-zinc-400 hover:text-zinc-100 hover:border-zinc-500 transition-colors bg-zinc-900"
                     x-text="showAdvanced[section.id] ? 'Hide advanced' : 'Show advanced'"
                   ></button>
                 </div>
@@ -628,17 +661,17 @@
                 :key="'mdl-' + section.id"
               >
                 <div class="settings-section" :id="'section-' + section.id">
-                  <div class="section-heading mb-4">
+                  <div class="section-heading mb-5">
                     <h2
-                      class="text-lg font-bold text-white"
+                      class="text-lg font-bold text-zinc-100 tracking-tight"
                       x-text="section.label"
                     ></h2>
                     <p
-                      class="text-xs text-[#8b8b95] mt-0.5"
+                      class="text-xs text-zinc-500 mt-1 leading-relaxed"
                       x-text="section.description"
                     ></p>
                   </div>
-                  <div class="field-grid grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="field-grid grid grid-cols-1 md:grid-cols-2 gap-5">
                     <template
                       x-for="field in fieldsForSection(section.id)"
                       :key="field.key"
@@ -649,11 +682,11 @@
                         <div class="space-y-1.5">
                           <label
                             :for="'fld-' + field.key"
-                            class="flex items-center justify-between text-sm font-semibold"
+                            class="flex items-center justify-between text-sm font-semibold text-zinc-200"
                           >
                             <span x-text="field.label"></span>
                             <span
-                              class="text-[10px] text-[#8b8b95] font-normal"
+                              class="text-[10px] text-zinc-500 font-normal"
                               x-text="sourceText(field)"
                             ></span>
                           </label>
@@ -667,7 +700,7 @@
                               x-model="fieldValues[field.key]"
                               :disabled="field.locked"
                               :class="errCls(field.key)"
-                              class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                              class="w-full h-9 px-3 rounded-lg border border-zinc-700 bg-zinc-900/50 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/30 transition-all disabled:cursor-not-allowed disabled:bg-zinc-900 disabled:text-zinc-600"
                             />
                           </template>
 
@@ -678,11 +711,11 @@
                               :aria-checked="fieldValues[field.key] === 'true'"
                               @click="toggleField(field.key)"
                               :disabled="field.locked"
-                              class="relative inline-flex h-6 w-11 items-center rounded-full border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#2fb984]/50 disabled:cursor-not-allowed disabled:opacity-50"
-                              :class="fieldValues[field.key] === 'true' ? 'bg-[#2fb984] border-[#2fb984]' : 'bg-[#19191c] border-[#2b2b30]'"
+                              class="relative inline-flex h-6 w-11 items-center rounded-full border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/40 disabled:cursor-not-allowed disabled:opacity-50"
+                              :class="fieldValues[field.key] === 'true' ? 'bg-green-500 border-green-500' : 'bg-zinc-800 border-zinc-700'"
                             >
                               <span
-                                class="inline-block h-4 w-4 rounded-full bg-white transition-transform duration-200"
+                                class="inline-block h-4 w-4 rounded-full bg-white transition-transform duration-200 shadow-sm"
                                 :class="fieldValues[field.key] === 'true' ? 'translate-x-[22px]' : 'translate-x-[3px]'"
                               ></span>
                             </button>
@@ -693,7 +726,7 @@
                               x-model="fieldValues[field.key]"
                               :disabled="field.locked"
                               :class="errCls(field.key)"
-                              class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-[#0c0c0d] text-sm text-white outline-none focus:border-[#2fb984] transition-colors appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                              class="w-full h-9 px-3 rounded-lg border border-zinc-700 bg-zinc-900/50 text-sm text-zinc-100 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/30 transition-all appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               <template x-for="opt in field.options" :key="opt">
                                 <option :value="opt" x-text="opt"></option>
@@ -703,12 +736,12 @@
 
                           <p
                             x-show="field.description"
-                            class="text-xs text-[#8b8b95]"
+                            class="text-xs text-zinc-500 leading-relaxed"
                             x-text="field.description"
                           ></p>
                           <p
                             x-show="validationErrors[field.key]"
-                            class="text-xs text-[#ff746c]"
+                            class="text-xs text-red-400"
                             x-text="validationErrors[field.key]"
                           ></p>
                         </div>
@@ -724,17 +757,17 @@
                 :key="'msg-' + section.id"
               >
                 <div class="settings-section" :id="'section-' + section.id">
-                  <div class="section-heading mb-4">
+                  <div class="section-heading mb-5">
                     <h2
-                      class="text-lg font-bold text-white"
+                      class="text-lg font-bold text-zinc-100 tracking-tight"
                       x-text="section.label"
                     ></h2>
                     <p
-                      class="text-xs text-[#8b8b95] mt-0.5"
+                      class="text-xs text-zinc-500 mt-1 leading-relaxed"
                       x-text="section.description"
                     ></p>
                   </div>
-                  <div class="field-grid grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="field-grid grid grid-cols-1 md:grid-cols-2 gap-5">
                     <template
                       x-for="field in fieldsForSection(section.id)"
                       :key="field.key"
@@ -745,11 +778,11 @@
                         <div class="space-y-1.5">
                           <label
                             :for="'fld-' + field.key"
-                            class="flex items-center justify-between text-sm font-semibold"
+                            class="flex items-center justify-between text-sm font-semibold text-zinc-200"
                           >
                             <span x-text="field.label"></span>
                             <span
-                              class="text-[10px] text-[#8b8b95] font-normal"
+                              class="text-[10px] text-zinc-500 font-normal"
                               x-text="sourceText(field)"
                             ></span>
                           </label>
@@ -763,7 +796,7 @@
                               x-model="fieldValues[field.key]"
                               :disabled="field.locked"
                               :class="errCls(field.key)"
-                              class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                              class="w-full h-9 px-3 rounded-lg border border-zinc-700 bg-zinc-900/50 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/30 transition-all disabled:cursor-not-allowed disabled:bg-zinc-900 disabled:text-zinc-600"
                             />
                           </template>
 
@@ -777,11 +810,11 @@
                                 :disabled="field.locked"
                                 autocomplete="off"
                                 :class="errCls(field.key)"
-                                class="w-full h-10 px-3 pr-10 rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                                class="w-full h-9 px-3 pr-10 rounded-lg border border-zinc-700 bg-zinc-900/50 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/30 transition-all disabled:cursor-not-allowed disabled:bg-zinc-900 disabled:text-zinc-600"
                               />
                               <button
                                 type="button"
-                                class="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-[#8b8b95] hover:text-white transition-colors"
+                                class="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
                                 @click="showSecrets[field.key] = !showSecrets[field.key]"
                                 x-text="showSecrets[field.key] ? '🙈' : '👁️'"
                               ></button>
@@ -795,11 +828,11 @@
                               :aria-checked="fieldValues[field.key] === 'true'"
                               @click="toggleField(field.key)"
                               :disabled="field.locked"
-                              class="relative inline-flex h-6 w-11 items-center rounded-full border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#2fb984]/50 disabled:cursor-not-allowed disabled:opacity-50"
-                              :class="fieldValues[field.key] === 'true' ? 'bg-[#2fb984] border-[#2fb984]' : 'bg-[#19191c] border-[#2b2b30]'"
+                              class="relative inline-flex h-6 w-11 items-center rounded-full border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/40 disabled:cursor-not-allowed disabled:opacity-50"
+                              :class="fieldValues[field.key] === 'true' ? 'bg-green-500 border-green-500' : 'bg-zinc-800 border-zinc-700'"
                             >
                               <span
-                                class="inline-block h-4 w-4 rounded-full bg-white transition-transform duration-200"
+                                class="inline-block h-4 w-4 rounded-full bg-white transition-transform duration-200 shadow-sm"
                                 :class="fieldValues[field.key] === 'true' ? 'translate-x-[22px]' : 'translate-x-[3px]'"
                               ></span>
                             </button>
@@ -810,7 +843,7 @@
                               x-model="fieldValues[field.key]"
                               :disabled="field.locked"
                               :class="errCls(field.key)"
-                              class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-[#0c0c0d] text-sm text-white outline-none focus:border-[#2fb984] transition-colors appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                              class="w-full h-9 px-3 rounded-lg border border-zinc-700 bg-zinc-900/50 text-sm text-zinc-100 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/30 transition-all appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               <template x-for="opt in field.options" :key="opt">
                                 <option :value="opt" x-text="opt"></option>
@@ -824,18 +857,18 @@
                               x-model="fieldValues[field.key]"
                               :disabled="field.locked"
                               :class="errCls(field.key)"
-                              class="w-full rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors p-3 min-h-[90px] resize-y disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                              class="w-full rounded-lg border border-zinc-700 bg-zinc-900/50 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500/30 transition-all p-3 min-h-[90px] resize-y disabled:cursor-not-allowed disabled:bg-zinc-900 disabled:text-zinc-600"
                             ></textarea>
                           </template>
 
                           <p
                             x-show="field.description"
-                            class="text-xs text-[#8b8b95]"
+                            class="text-xs text-zinc-500 leading-relaxed"
                             x-text="field.description"
                           ></p>
                           <p
                             x-show="validationErrors[field.key]"
-                            class="text-xs text-[#ff746c]"
+                            class="text-xs text-red-400"
                             x-text="validationErrors[field.key]"
                           ></p>
                         </div>
@@ -846,7 +879,7 @@
                     x-show="hasAdvanced(section.id)"
                     type="button"
                     @click="showAdvanced[section.id] = !showAdvanced[section.id]"
-                    class="mt-4 px-3 py-1.5 rounded-md border border-[#2b2b30] text-xs font-bold text-[#8b8b95] hover:text-white hover:border-[#2fb984] transition-colors bg-[#19191c]"
+                    class="mt-5 px-3 py-1.5 rounded-lg border border-zinc-700 text-xs font-semibold text-zinc-400 hover:text-zinc-100 hover:border-zinc-500 transition-colors bg-zinc-900"
                     x-text="showAdvanced[section.id] ? 'Hide advanced' : 'Show advanced'"
                   ></button>
                 </div>
@@ -860,12 +893,12 @@
 
         <!-- ── Action bar (fixed at bottom) ── -->
         <footer
-          class="fixed bottom-0 right-0 left-0 lg:left-60 z-30 flex items-center justify-between gap-4 h-16 px-5 lg:px-10 border-t border-[#1f1f23] bg-[#0c0c0d]/95 backdrop-blur-lg"
+          class="fixed bottom-0 right-0 left-0 lg:left-60 z-30 flex items-center justify-between gap-4 h-16 px-5 lg:px-10 border-t border-zinc-800 bg-zinc-950/90 backdrop-blur-xl"
         >
-          <span class="text-sm text-[#8b8b95]">
+          <span class="text-sm text-zinc-500">
             <span
               x-show="dirtyCount"
-              class="text-[#2fb984] font-semibold"
+              class="text-green-400 font-semibold"
               x-text="dirtyCount"
             ></span>
             <span
@@ -874,24 +907,18 @@
             ></span>
             <span x-show="!dirtyCount">No changes</span>
           </span>
-          <div class="flex items-center gap-2">
-            <div
-              id="messageArea"
-              class="text-sm text-[#8b8b95] mr-2"
-              x-show="toast.show"
-              x-text="toast.message"
-            ></div>
+          <div class="flex items-center gap-3">
             <button
               type="button"
-              class="px-4 py-2 rounded-lg border border-[#2b2b30] text-sm font-bold text-white bg-[#19191c] hover:border-[#2fb984] transition-colors"
+              class="px-4 py-2 rounded-lg border border-zinc-700 text-sm font-semibold text-zinc-300 bg-zinc-900 hover:bg-zinc-800 hover:text-zinc-100 transition-colors"
               @click="validateAndShow()"
             >
               Validate
             </button>
             <button
               type="button"
-              class="px-4 py-2 rounded-lg border text-sm font-bold transition-colors"
-              :class="dirtyCount === 0 ? 'border-[#2b2b30] bg-[#19191c] text-[#6b635a] cursor-not-allowed' : 'border-[#2fb984] bg-[#2fb984] text-black hover:bg-[#24946b] cursor-pointer'"
+              class="px-5 py-2 rounded-lg border text-sm font-semibold transition-all"
+              :class="dirtyCount === 0 ? 'border-zinc-800 bg-zinc-900 text-zinc-600 cursor-not-allowed' : 'border-green-500 bg-green-500 text-zinc-950 hover:bg-green-400 hover:shadow-lg hover:shadow-green-500/20 cursor-pointer'"
               :disabled="dirtyCount === 0"
               @click="apply()"
             >
