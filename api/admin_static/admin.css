@@ -1,14 +1,14 @@
 :root {
   color-scheme: dark;
-  --bg: #11100e;
-  --panel: #1a1815;
-  --panel-strong: #25211c;
+  --bg: #0c0c0d;
+  --panel: #111113;
+  --panel-strong: #19191c;
   --card: #201d19;
   --input: #12110f;
   --text: #f3eee7;
-  --muted: #aaa197;
-  --line: #373129;
-  --line-strong: #4d4439;
+  --muted: #8b8b95;
+  --line: #1f1f23;
+  --line-strong: #2b2b30;
   --accent: #2fb984;
   --accent-dark: #24946b;
   --warn: #f5b74f;
@@ -18,92 +18,216 @@
   --shadow: 0 14px 34px rgba(0, 0, 0, 0.38);
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
   min-width: 320px;
   background: var(--bg);
   color: var(--text);
-  font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
-  letter-spacing: 0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
+button, input, select, textarea { font: inherit; }
 
 /* ── App Shell ── */
 
 .app-shell {
   display: grid;
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: 1fr auto;
   min-height: 100vh;
-  padding-bottom: 86px;
 }
 
-/* ── Top Bar ── */
+/* ── Sidebar ── */
 
-.topbar {
+.sidebar {
+  position: sticky;
+  top: 0;
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 28px;
+  flex-direction: column;
+  height: 100vh;
+  border-right: 1px solid var(--line);
+  background: var(--bg);
+  overflow-y: auto;
+}
+
+.sidebar-top {
+  padding: 20px 14px 12px;
   border-bottom: 1px solid var(--line);
-  background: #171511;
 }
 
-.brand {
+.sidebar-top .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
 .brand-mark {
   display: grid;
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   place-items: center;
   border-radius: 8px;
   background: var(--accent);
   color: #ffffff;
   font-weight: 800;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.brand-text {
   font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
 }
 
-.brand h1,
-.brand p {
-  margin: 0;
+.sidebar-search input {
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 150ms;
 }
 
-.brand h1 {
-  font-size: 15px;
-  line-height: 1.2;
+.sidebar-search input:focus {
+  border-color: var(--accent);
 }
 
-.brand p {
+.sidebar-search input::placeholder {
   color: var(--muted);
-  font-size: 12px;
 }
 
-/* ── Main Content ── */
+/* ── Sidebar Nav ── */
+
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 8px;
+  overflow-y: auto;
+}
+
+.nav-group {
+  margin-bottom: 6px;
+}
+
+.nav-group summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  list-style: none;
+  user-select: none;
+}
+
+.nav-group summary::-webkit-details-marker { display: none; }
+
+.nav-group summary::before {
+  content: "▸";
+  font-size: 10px;
+  transition: transform 200ms;
+}
+
+.nav-group[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.nav-group summary:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.nav-group summary .group-icon {
+  font-size: 14px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.nav-item {
+  display: block;
+  padding: 5px 8px 5px 28px;
+  margin: 1px 0;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 150ms, background 150ms;
+}
+
+.nav-item:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.nav-item.active {
+  color: var(--accent);
+  background: rgba(47, 185, 132, 0.08);
+  font-weight: 600;
+}
+
+/* ── Mobile Topbar ── */
+
+.mobile-topbar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.mobile-topbar .brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hamburger {
+  background: none;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--text);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* ── Sidebar Overlay (mobile) ── */
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* ── Main ── */
 
 .main {
   min-width: 0;
-  padding: 28px;
+  padding: 32px 40px;
+  grid-column: 2;
 }
 
 .admin-views {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  align-items: start;
+  gap: 28px;
 }
 
 /* ── Provider Strip ── */
@@ -395,29 +519,36 @@ textarea {
 
 /* ── Responsive ── */
 
-@media (max-width: 1100px) {
-  .admin-views {
-    grid-template-columns: 2fr 1fr;
-  }
-  .form-sections:last-child {
-    grid-column: 1 / -1;
-  }
-}
-
 @media (max-width: 700px) {
-  .admin-views {
+  .app-shell {
     grid-template-columns: 1fr;
   }
-  .form-sections:last-child {
-    grid-column: auto;
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    transform: translateX(-100%);
+    transition: transform 200ms ease;
+    height: 100vh;
   }
 
-  .topbar {
-    padding: 12px 18px;
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay.open {
+    display: block;
+  }
+
+  .mobile-topbar {
+    display: flex;
   }
 
   .main {
     padding: 18px;
+    grid-column: 1;
   }
 
   .action-bar {
