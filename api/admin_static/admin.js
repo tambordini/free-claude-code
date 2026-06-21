@@ -80,7 +80,6 @@ async function load() {
   state.fields = new Map(config.fields.map((field) => [field.key, field]));
   renderProviders(config.provider_status);
   renderSections(config.sections, config.fields);
-  byId("configPath").textContent = config.paths.managed;
   await validate(false);
   await refreshLocalStatus();
   // Populate model datalist from server cache (zero provider API calls)
