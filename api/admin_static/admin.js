@@ -188,6 +188,7 @@ function renderSections(sections, fields) {
 
 function renderSidebar(sections) {
   const nav = byId("sidebarNav");
+  if (!nav) return;
   nav.innerHTML = "";
 
   NAV_GROUPS.forEach((group) => {
@@ -274,12 +275,6 @@ function setupSearch() {
     document.querySelectorAll(".nav-item").forEach((item) => {
       const match = !query || item.textContent.toLowerCase().includes(query);
       item.style.display = match ? "" : "none";
-      if (match && query) {
-        item.classList.add("active");
-        item.scrollIntoView({ behavior: "smooth", block: "center" });
-      } else if (!query) {
-        item.classList.remove("active");
-      }
     });
     // Show/hide groups based on visible children
     document.querySelectorAll(".nav-group").forEach((group) => {
@@ -302,10 +297,6 @@ function setupSearch() {
 function setupMobileToggle() {
   byId("hamburgerBtn")?.addEventListener("click", openSidebar);
   byId("sidebarOverlay")?.addEventListener("click", closeSidebar);
-  // Close sidebar on Escape
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeSidebar();
-  });
 }
 
 function renderSection(section, sectionFields) {
@@ -590,6 +581,11 @@ function showMessage(message, kind = "") {
   area.textContent = message;
   area.className = `message-area ${kind}`.trim();
 }
+
+// Register once at module scope — not inside load() to avoid stacking on Apply
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeSidebar();
+});
 
 byId("validateButton").addEventListener("click", () => validate(true));
 byId("applyButton").addEventListener("click", apply);
