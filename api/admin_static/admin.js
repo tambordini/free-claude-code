@@ -16,7 +16,8 @@ async function api(path, options = {}) {
     headers: { "Content-Type": "application/json", ...(options.headers || {}) },
     ...options,
   });
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+  if (!response.ok)
+    throw new Error(`${response.status} ${response.statusText}`);
   return response.json();
 }
 
@@ -29,7 +30,9 @@ function sourceLabel(source) {
     explicit_env_file: "FCC_ENV_FILE",
     process: "process env",
   };
-  return Object.prototype.hasOwnProperty.call(labels, source) ? labels[source] : source;
+  return Object.prototype.hasOwnProperty.call(labels, source)
+    ? labels[source]
+    : source;
 }
 
 function providerName(providerId) {
@@ -82,6 +85,7 @@ function adminUi() {
     loading: true,
     showAdvanced: {},
     combos: {},
+    validationErrors: {},
 
     // === Init (auto-called by Alpine) ===
     async init() {
@@ -111,9 +115,11 @@ function adminUi() {
 
         // Initialize showSecrets for each secret field
         const secrets = {};
-        config.fields.filter((f) => f.type === "secret").forEach((f) => {
-          secrets[f.key] = false;
-        });
+        config.fields
+          .filter((f) => f.type === "secret")
+          .forEach((f) => {
+            secrets[f.key] = false;
+          });
         this.showSecrets = secrets;
 
         // Set initial active section
@@ -134,6 +140,19 @@ function adminUi() {
         // Setup scroll spy once DOM is rendered
         await this.$nextTick();
         this.setupScrollSpy();
+
+        // Clear validation errors when user edits a field
+        this.$watch(
+          "fieldValues",
+          (val) => {
+            for (const key of Object.keys(this.validationErrors)) {
+              if (val[key] !== this.originals[key]) {
+                delete this.validationErrors[key];
+              }
+            }
+          },
+          { deep: true },
+        );
 
         await this.refreshLocalStatus();
       } catch (e) {
@@ -173,20 +192,22 @@ function adminUi() {
     providerName,
     statusClass,
 
+    errCls(key) {
+      return this.validationErrors[key] ? "field-error" : "";
+    },
+
     // === Search (filters NAV_GROUPS by section label) ===
 
     filteredNavGroups(query) {
       if (!query) return NAV_GROUPS;
       const q = query.toLowerCase();
-      return NAV_GROUPS
-        .map((g) => ({
-          ...g,
-          sections: g.sections.filter((id) => {
-            const s = this.sections.find((x) => x.id === id);
-            return s && s.label.toLowerCase().includes(q);
-          }),
-        }))
-        .filter((g) => g.sections.length > 0);
+      return NAV_GROUPS.map((g) => ({
+        ...g,
+        sections: g.sections.filter((id) => {
+          const s = this.sections.find((x) => x.id === id);
+          return s && s.label.toLowerCase().includes(q);
+        }),
+      })).filter((g) => g.sections.length > 0);
     },
 
     // === Dirty state ===
@@ -219,6 +240,7 @@ function adminUi() {
     toggleField(key) {
       this.fieldValues[key] =
         this.fieldValues[key] === "true" ? "false" : "true";
+      delete this.validationErrors[key];
     },
 
     // === Model combobox helpers ===
@@ -263,15 +285,26 @@ function adminUi() {
     },
 
     async validateAndShow() {
+      this.validationErrors = {};
       const result = await this.validate();
       if (result.valid) {
         this.showToast("Config shape is valid", "ok");
       } else {
+        (result.errors || []).forEach((e) => {
+          const colon = e.indexOf(":");
+          if (colon > 0) {
+            const key = e.substring(0, colon).trim();
+            if (Object.prototype.hasOwnProperty.call(this.fieldValues, key)) {
+              this.validationErrors[key] = e.substring(colon + 1).trim();
+            }
+          }
+        });
         this.showToast(result.errors.join("; "), "error");
       }
     },
 
     async apply() {
+      this.validationErrors = {};
       const result = await api("/admin/api/config/apply", {
         method: "POST",
         body: JSON.stringify({ values: this.changedValues() }),
@@ -324,10 +357,10 @@ function adminUi() {
 
     async testProvider(providerId) {
       try {
-        const result = await api(
-          `/admin/api/providers/${providerId}/test`,
-          { method: "POST", body: "{}" },
-        );
+        const result = await api(`/admin/api/providers/${providerId}/test`, {
+          method: "POST",
+          body: "{}",
+        });
         const card = this.providerStatus.find(
           (p) => p.provider_id === providerId,
         );
@@ -384,9 +417,7 @@ function adminUi() {
     // === Advanced sections ===
 
     hasAdvanced(sectionId) {
-      return this.fields.some(
-        (f) => f.section === sectionId && f.advanced,
-      );
+      return this.fields.some((f) => f.section === sectionId && f.advanced);
     },
 
     // === Notifications ===

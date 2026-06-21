@@ -1,11 +1,25 @@
-:root { color-scheme: dark; }
+:root {
+  color-scheme: dark;
+}
+
+/* Field-level validation error — !important overrides Tailwind CDN */
+.field-error {
+  border-color: #ff746c !important;
+}
+.field-error:focus {
+  border-color: #ff746c !important;
+}
 
 /* Custom scrollbar — Tailwind can't do this */
 .sidebar-nav::-webkit-scrollbar,
-.main::-webkit-scrollbar { width: 6px; }
+.main::-webkit-scrollbar {
+  width: 6px;
+}
 
 .sidebar-nav::-webkit-scrollbar-track,
-.main::-webkit-scrollbar-track { background: transparent; }
+.main::-webkit-scrollbar-track {
+  background: transparent;
+}
 
 .sidebar-nav::-webkit-scrollbar-thumb,
 .main::-webkit-scrollbar-thumb {
@@ -14,7 +28,11 @@
 }
 
 /* Remove native <details> disclosure triangle */
-.nav-group summary::-webkit-details-marker { display: none; }
+.nav-group summary::-webkit-details-marker {
+  display: none;
+}
 
 /* Alpine cloak — hide until ready */
-[x-cloak] { display: none !important; }
+[x-cloak] {
+  display: none !important;
+}

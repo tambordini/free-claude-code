@@ -1148,12 +1148,27 @@ def validate_values(values: Mapping[str, str]) -> tuple[bool, list[str]]:
     return True, []
 
 
+def _loc_to_env_key(loc: str) -> str | None:
+    """Map a Pydantic validation loc (settings_attr or alias) to an env key."""
+    for field in FIELDS:
+        if field.settings_attr is None:
+            continue
+        input_key = _field_input_key(field)
+        if input_key == loc or field.settings_attr == loc:
+            return field.key
+    return None
+
+
 def _format_validation_errors(exc: ValidationError) -> list[str]:
     errors: list[str] = []
     for error in exc.errors():
         loc = ".".join(str(part) for part in error.get("loc", ()))
         message = str(error.get("msg", "Invalid value"))
-        errors.append(f"{loc}: {message}" if loc else message)
+        env_key = _loc_to_env_key(loc)
+        if env_key:
+            errors.append(f"{env_key}: {message}")
+        else:
+            errors.append(f"{loc}: {message}" if loc else message)
     return errors
 
 

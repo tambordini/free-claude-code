@@ -1,681 +1,914 @@
 <!doctype html>
 <html lang="en" class="h-full">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Free Claude Code Admin</title>
-  <link rel="icon" href="data:," />
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Free Claude Code Admin</title>
+    <link rel="icon" href="data:," />
 
-  <!-- Tailwind CSS v4 browser build (runtime, no build step) -->
-  <script
-    src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1"
-    integrity="sha384-OT3qnPBOZ0Z1BVC2R6WSI4cjBlIoSMeeZAUY8gZqaP1TgAJHbuo2gIM6KzQ8/viI"
-    crossorigin="anonymous"
-  ></script>
+    <!-- Tailwind CSS v4 browser build (runtime, no build step) -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1"
+      integrity="sha384-OT3qnPBOZ0Z1BVC2R6WSI4cjBlIoSMeeZAUY8gZqaP1TgAJHbuo2gIM6KzQ8/viI"
+      crossorigin="anonymous"
+    ></script>
 
-  <!-- Alpine.js v3 (deferred — runs after document parsed) -->
-  <script
-    defer
-    src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js"
-    integrity="sha384-pb6hrQvo4s23cEUFtj0CZkzGE3jyK3pj26RIupXXxhSrrcUA/Cn0lZgcCrGH0t6L"
-    crossorigin="anonymous"
-  ></script>
+    <!-- Alpine.js v3 (deferred — runs after document parsed) -->
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js"
+      integrity="sha384-pb6hrQvo4s23cEUFtj0CZkzGE3jyK3pj26RIupXXxhSrrcUA/Cn0lZgcCrGH0t6L"
+      crossorigin="anonymous"
+    ></script>
 
-  <link rel="stylesheet" href="/admin/assets/admin.css" />
-</head>
-<body
-  x-data="adminUi()"
-  class="h-full bg-[#0c0c0d] text-[#f3eee7] font-sans antialiased"
-  @keydown.escape.window="sidebarOpen = false"
->
-  <!-- ── Toast notification ── -->
-  <div
-    x-show="toast.show"
-    x-transition:enter="transition ease-out duration-300"
-    x-transition:enter-start="opacity-0 translate-y-2"
-    x-transition:enter-end="opacity-100 translate-y-0"
-    x-transition:leave="transition ease-in duration-200"
-    x-transition:leave-start="opacity-100 translate-y-0"
-    x-transition:leave-end="opacity-0 translate-y-2"
-    class="fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-bold flex items-center gap-2 cursor-pointer"
-    :class="toast.type === 'success' ? 'bg-[#2fb984] text-black' : toast.type === 'error' ? 'bg-[#ff746c] text-black' : 'bg-[#19191c] text-white border border-[#2b2b30]'"
-    @click="toast.show = false"
-    x-text="toast.message"
-  ></div>
+    <link rel="stylesheet" href="/admin/assets/admin.css" />
+  </head>
+  <body
+    x-data="adminUi()"
+    class="h-full bg-[#0c0c0d] text-[#f3eee7] font-sans antialiased"
+    @keydown.escape.window="sidebarOpen = false"
+  >
+    <!-- ── Toast notification ── -->
+    <div
+      x-show="toast.show"
+      x-transition:enter="transition ease-out duration-300"
+      x-transition:enter-start="opacity-0 translate-y-2"
+      x-transition:enter-end="opacity-100 translate-y-0"
+      x-transition:leave="transition ease-in duration-200"
+      x-transition:leave-start="opacity-100 translate-y-0"
+      x-transition:leave-end="opacity-0 translate-y-2"
+      class="fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-bold flex items-center gap-2 cursor-pointer"
+      :class="toast.type === 'success' ? 'bg-[#2fb984] text-black' : toast.type === 'error' ? 'bg-[#ff746c] text-black' : 'bg-[#19191c] text-white border border-[#2b2b30]'"
+      @click="toast.show = false"
+      x-text="toast.message"
+    ></div>
 
-  <!-- ── Mobile sidebar overlay ── -->
-  <div
-    x-show="sidebarOpen"
-    x-transition:enter="transition ease-out duration-200"
-    x-transition:enter-start="opacity-0"
-    x-transition:enter-end="opacity-100"
-    x-transition:leave="transition ease-in duration-150"
-    x-transition:leave-start="opacity-100"
-    x-transition:leave-end="opacity-0"
-    class="fixed inset-0 z-10 bg-black/60 lg:hidden"
-    @click="sidebarOpen = false"
-  ></div>
+    <!-- ── Mobile sidebar overlay ── -->
+    <div
+      x-show="sidebarOpen"
+      x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100"
+      x-transition:leave="transition ease-in duration-150"
+      x-transition:leave-start="opacity-100"
+      x-transition:leave-end="opacity-0"
+      class="fixed inset-0 z-10 bg-black/60 lg:hidden"
+      @click="sidebarOpen = false"
+    ></div>
 
-  <!-- ── App shell ── -->
-  <div class="flex h-full">
-    <!-- ══════════════════ SIDEBAR ══════════════════ -->
-    <aside
-      class="fixed lg:static inset-y-0 left-0 z-20 w-60 shrink-0 flex flex-col border-r border-[#1f1f23] bg-[#0c0c0d] -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-in-out"
-      :class="sidebarOpen ? 'translate-x-0 shadow-2xl' : ''"
-    >
-      <!-- Brand -->
-      <div class="p-4 border-b border-[#1f1f23]">
-        <div class="flex items-center gap-2.5 mb-3">
-          <div class="w-8 h-8 rounded-lg bg-[#2fb984] grid place-items-center text-black font-extrabold text-xs">
-            FC
-          </div>
-          <span class="font-bold text-sm text-white">Free Claude Code</span>
-        </div>
-        <!-- Search -->
-        <input
-          type="search"
-          x-model="searchQuery"
-          placeholder="Search sections…"
-          class="w-full h-9 px-3 rounded-md border border-[#2b2b30] bg-transparent text-sm text-[#f3eee7] placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors"
-        />
-      </div>
-
-      <!-- Nav groups -->
-      <nav class="sidebar-nav flex-1 overflow-y-auto p-3 space-y-1">
-        <template x-for="group in filteredNavGroups(searchQuery)" :key="group.label">
-          <details class="nav-group" open>
-            <summary
-              class="flex items-center gap-2 px-2 py-1.5 rounded-md text-[10px] font-bold text-[#8b8b95] uppercase tracking-wider cursor-pointer hover:text-white hover:bg-white/5 transition-colors"
+    <!-- ── App shell ── -->
+    <div class="flex h-full">
+      <!-- ══════════════════ SIDEBAR ══════════════════ -->
+      <aside
+        class="fixed lg:static inset-y-0 left-0 z-20 w-60 shrink-0 flex flex-col border-r border-[#1f1f23] bg-[#0c0c0d] -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-in-out"
+        :class="sidebarOpen ? 'translate-x-0 shadow-2xl' : ''"
+      >
+        <!-- Brand -->
+        <div class="p-4 border-b border-[#1f1f23]">
+          <div class="flex items-center gap-2.5 mb-3">
+            <div
+              class="w-8 h-8 rounded-lg bg-[#2fb984] grid place-items-center text-black font-extrabold text-xs"
             >
-              <span class="text-sm lowercase" x-text="group.icon"></span>
-              <span x-text="group.label"></span>
-            </summary>
-            <template x-for="secId in group.sections" :key="secId">
-              <template x-if="sectionFromId(secId)">
-                <a
-                  href="#"
-                  class="block px-2 py-1.5 ml-5 rounded-md text-sm text-[#8b8b95] hover:text-white hover:bg-white/5 transition-colors"
-                  :class="activeSection === secId ? 'text-[#2fb984] bg-[#2fb984]/10 font-semibold' : ''"
-                  x-text="sectionFromId(secId).label"
-                  @click.prevent="scrollToSection(secId)"
-                ></a>
-              </template>
-            </template>
-          </details>
-        </template>
-      </nav>
-    </aside>
-
-    <!-- ══════════════════ MAIN ══════════════════ -->
-    <main class="flex-1 flex flex-col min-w-0">
-      <!-- Mobile topbar -->
-      <div class="flex lg:hidden items-center justify-between px-4 py-2.5 border-b border-[#1f1f23] bg-[#0c0c0d]">
-        <div class="flex items-center gap-2.5">
-          <div class="w-7 h-7 rounded-lg bg-[#2fb984] grid place-items-center text-black font-extrabold text-[11px]">
-            FC
+              FC
+            </div>
+            <span class="font-bold text-sm text-white">Free Claude Code</span>
           </div>
-          <span class="font-bold text-sm text-white">Free Claude Code</span>
+          <!-- Search -->
+          <input
+            type="search"
+            x-model="searchQuery"
+            placeholder="Search sections…"
+            class="w-full h-9 px-3 rounded-md border border-[#2b2b30] bg-transparent text-sm text-[#f3eee7] placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors"
+          />
         </div>
-        <button
-          type="button"
-          class="px-2 py-1 rounded border border-[#2b2b30] text-lg text-white"
-          @click="sidebarOpen = !sidebarOpen"
-          aria-label="Toggle menu"
+
+        <!-- Nav groups -->
+        <nav class="sidebar-nav flex-1 overflow-y-auto p-3 space-y-1">
+          <template
+            x-for="group in filteredNavGroups(searchQuery)"
+            :key="group.label"
+          >
+            <details class="nav-group" open>
+              <summary
+                class="flex items-center gap-2 px-2 py-1.5 rounded-md text-[10px] font-bold text-[#8b8b95] uppercase tracking-wider cursor-pointer hover:text-white hover:bg-white/5 transition-colors"
+              >
+                <span class="text-sm lowercase" x-text="group.icon"></span>
+                <span x-text="group.label"></span>
+              </summary>
+              <template x-for="secId in group.sections" :key="secId">
+                <template x-if="sectionFromId(secId)">
+                  <a
+                    href="#"
+                    class="block px-2 py-1.5 ml-5 rounded-md text-sm text-[#8b8b95] hover:text-white hover:bg-white/5 transition-colors"
+                    :class="activeSection === secId ? 'text-[#2fb984] bg-[#2fb984]/10 font-semibold' : ''"
+                    x-text="sectionFromId(secId).label"
+                    @click.prevent="scrollToSection(secId)"
+                  ></a>
+                </template>
+              </template>
+            </details>
+          </template>
+        </nav>
+      </aside>
+
+      <!-- ══════════════════ MAIN ══════════════════ -->
+      <main class="flex-1 flex flex-col min-w-0">
+        <!-- Mobile topbar -->
+        <div
+          class="flex lg:hidden items-center justify-between px-4 py-2.5 border-b border-[#1f1f23] bg-[#0c0c0d]"
         >
-          ☰
-        </button>
-      </div>
+          <div class="flex items-center gap-2.5">
+            <div
+              class="w-7 h-7 rounded-lg bg-[#2fb984] grid place-items-center text-black font-extrabold text-[11px]"
+            >
+              FC
+            </div>
+            <span class="font-bold text-sm text-white">Free Claude Code</span>
+          </div>
+          <button
+            type="button"
+            class="px-2 py-1 rounded border border-[#2b2b30] text-lg text-white"
+            @click="sidebarOpen = !sidebarOpen"
+            aria-label="Toggle menu"
+          >
+            ☰
+          </button>
+        </div>
 
-      <!-- Scrollable content area -->
-      <div class="flex-1 overflow-y-auto main">
-        <div class="p-5 lg:p-10 space-y-8 pb-28">
-
-          <!-- ── Loading skeleton ── -->
-          <div x-show="loading" class="space-y-6 animate-pulse">
-            <div class="space-y-2">
-              <div class="h-4 bg-[#1f1f23] rounded w-48"></div>
-              <div class="h-3 bg-[#1f1f23] rounded w-72"></div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Scrollable content area -->
+        <div class="flex-1 overflow-y-auto main">
+          <div class="p-5 lg:p-10 space-y-8 pb-28">
+            <!-- ── Loading skeleton ── -->
+            <div x-show="loading" class="space-y-6 animate-pulse">
+              <div class="space-y-2">
+                <div class="h-4 bg-[#1f1f23] rounded w-48"></div>
+                <div class="h-3 bg-[#1f1f23] rounded w-72"></div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="h-10 bg-[#1f1f23] rounded"></div>
+                <div class="h-10 bg-[#1f1f23] rounded"></div>
+              </div>
               <div class="h-10 bg-[#1f1f23] rounded"></div>
-              <div class="h-10 bg-[#1f1f23] rounded"></div>
-            </div>
-            <div class="h-10 bg-[#1f1f23] rounded"></div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="h-10 bg-[#1f1f23] rounded"></div>
-              <div class="h-10 bg-[#1f1f23] rounded"></div>
-            </div>
-            <div class="rounded-lg border border-[#1f1f23] p-4 space-y-3">
-              <div class="h-4 bg-[#1f1f23] rounded w-24"></div>
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div class="h-24 bg-[#1f1f23] rounded"></div>
-                <div class="h-24 bg-[#1f1f23] rounded"></div>
-                <div class="h-24 bg-[#1f1f23] rounded"></div>
-                <div class="h-24 bg-[#1f1f23] rounded"></div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="h-10 bg-[#1f1f23] rounded"></div>
+                <div class="h-10 bg-[#1f1f23] rounded"></div>
+              </div>
+              <div class="rounded-lg border border-[#1f1f23] p-4 space-y-3">
+                <div class="h-4 bg-[#1f1f23] rounded w-24"></div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div class="h-24 bg-[#1f1f23] rounded"></div>
+                  <div class="h-24 bg-[#1f1f23] rounded"></div>
+                  <div class="h-24 bg-[#1f1f23] rounded"></div>
+                  <div class="h-24 bg-[#1f1f23] rounded"></div>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- ── Real content (hidden while loading) ── -->
-          <div x-show="!loading" class="space-y-8">
+            <!-- ── Real content (hidden while loading) ── -->
+            <div x-show="!loading" class="space-y-8">
+              <!-- ── Model Routing sections ── -->
+              <template
+                x-for="section in sectionsFor('models')"
+                :key="section.id"
+              >
+                <div class="settings-section" :id="'section-' + section.id">
+                  <div class="section-heading mb-4">
+                    <h2
+                      class="text-lg font-bold text-white"
+                      x-text="section.label"
+                    ></h2>
+                    <p
+                      class="text-xs text-[#8b8b95] mt-0.5"
+                      x-text="section.description"
+                    ></p>
+                  </div>
+                  <div class="field-grid grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <template
+                      x-for="field in fieldsForSection(section.id)"
+                      :key="field.key"
+                    >
+                      <template
+                        x-if="!field.advanced || showAdvanced[section.id]"
+                      >
+                        <div class="space-y-1.5">
+                          <!-- Label -->
+                          <label
+                            :for="'fld-' + field.key"
+                            class="flex items-center justify-between text-sm font-semibold"
+                          >
+                            <span x-text="field.label"></span>
+                            <span
+                              class="text-[10px] text-[#8b8b95] font-normal"
+                              x-text="sourceText(field)"
+                            ></span>
+                          </label>
 
-            <!-- ── Model Routing sections ── -->
-            <template x-for="section in sectionsFor('models')" :key="section.id">
-              <div class="settings-section" :id="'section-' + section.id">
-                <div class="section-heading mb-4">
-                  <h2 class="text-lg font-bold text-white" x-text="section.label"></h2>
-                  <p class="text-xs text-[#8b8b95] mt-0.5" x-text="section.description"></p>
-                </div>
-                <div class="field-grid grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <template x-for="field in fieldsForSection(section.id)" :key="field.key">
-                    <template x-if="!field.advanced || showAdvanced[section.id]">
-                      <div class="space-y-1.5">
-                        <!-- Label -->
-                        <label :for="'fld-' + field.key" class="flex items-center justify-between text-sm font-semibold">
-                          <span x-text="field.label"></span>
-                          <span class="text-[10px] text-[#8b8b95] font-normal" x-text="sourceText(field)"></span>
-                        </label>
-
-                        <!-- model combobox -->
-                        <template x-if="field.type === 'text' && field.key.startsWith('MODEL')">
-                          <div class="relative" @click.outside="combos[field.key] = combos[field.key] || {open:false,idx:-1}; combos[field.key].open = false">
-                            <input
-                              :id="'fld-' + field.key"
-                              x-model="fieldValues[field.key]"
-                              :disabled="field.locked"
-                              placeholder="Type to filter models…"
-                              @focus="combos[field.key] = combos[field.key] || {open:true,idx:-1}; combos[field.key].open = true"
-                              @input="combos[field.key] ? (combos[field.key].open = true, combos[field.key].idx = -1) : (combos[field.key] = {open:true,idx:-1})"
-                              @keydown.arrow-down.prevent="comboNav(field.key, 'down')"
-                              @keydown.arrow-up.prevent="comboNav(field.key, 'up')"
-                              @keydown.enter.prevent="comboSelectActive(field.key)"
-                              @keydown.escape="combos[field.key] && (combos[field.key].open = false)"
-                              autocomplete="off"
-                              class="w-full h-10 px-3 pr-9 rounded-lg border border-[#2b2b30] bg-[#121214] text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] focus:ring-1 focus:ring-[#2fb984]/30 transition-all disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
-                            />
-                            <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b635a] pointer-events-none transition-transform" :class="combos[field.key]?.open ? 'rotate-180 text-[#2fb984]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4 4 4-4"/></svg>
+                          <!-- model combobox -->
+                          <template
+                            x-if="field.type === 'text' && field.key.startsWith('MODEL')"
+                          >
                             <div
-                              x-show="combos[field.key]?.open && filteredModels(field.key).length > 0"
-                              x-cloak
-                              class="absolute top-full left-0 right-0 z-50 mt-1 max-h-56 overflow-y-auto rounded-lg border border-[#2b2b30] bg-[#19191c] shadow-xl shadow-black/40"
+                              class="relative"
+                              @click.outside="combos[field.key] = combos[field.key] || {open:false,idx:-1}; combos[field.key].open = false"
                             >
-                              <template x-for="(m, i) in filteredModels(field.key)" :key="m">
-                                <div
-                                  @click="selectModel(field.key, m)"
-                                  @mouseenter="combos[field.key] = combos[field.key] || {open:true,idx:-1}; combos[field.key].idx = i"
-                                  class="flex items-center gap-1.5 px-3 py-2.5 text-sm cursor-pointer border-b border-[#1f1f23] last:border-b-0 transition-colors"
-                                  :class="i === combos[field.key]?.idx ? 'bg-[#2fb984]/15 text-white' : 'text-[#c5c2bd] hover:bg-white/[0.04]'"
+                              <input
+                                :id="'fld-' + field.key"
+                                x-model="fieldValues[field.key]"
+                                :disabled="field.locked"
+                                placeholder="Type to filter models…"
+                                @focus="combos[field.key] = combos[field.key] || {open:true,idx:-1}; combos[field.key].open = true"
+                                @input="combos[field.key] ? (combos[field.key].open = true, combos[field.key].idx = -1) : (combos[field.key] = {open:true,idx:-1})"
+                                @keydown.arrow-down.prevent="comboNav(field.key, 'down')"
+                                @keydown.arrow-up.prevent="comboNav(field.key, 'up')"
+                                @keydown.enter.prevent="comboSelectActive(field.key)"
+                                @keydown.escape="combos[field.key] && (combos[field.key].open = false)"
+                                autocomplete="off"
+                                :class="errCls(field.key)"
+                                class="w-full h-10 px-3 pr-9 rounded-lg border border-[#2b2b30] bg-[#121214] text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] focus:ring-1 focus:ring-[#2fb984]/30 transition-all disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                              />
+                              <svg
+                                class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b635a] pointer-events-none transition-transform"
+                                :class="combos[field.key]?.open ? 'rotate-180 text-[#2fb984]' : ''"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M8 9l4 4 4-4"
+                                />
+                              </svg>
+                              <div
+                                x-show="combos[field.key]?.open && filteredModels(field.key).length > 0"
+                                x-cloak
+                                class="absolute top-full left-0 right-0 z-50 mt-1 max-h-56 overflow-y-auto rounded-lg border border-[#2b2b30] bg-[#19191c] shadow-xl shadow-black/40"
+                              >
+                                <template
+                                  x-for="(m, i) in filteredModels(field.key)"
+                                  :key="m"
                                 >
-                                  <span class="text-[#2fb984] font-medium shrink-0" x-text="m.split('/')[0] + '/'"></span>
-                                  <span class="truncate" x-text="m.split('/').slice(1).join('/')"></span>
-                                </div>
-                              </template>
-                              <div class="px-3 py-1.5 text-[10px] text-[#6b635a] border-t border-[#1f1f23]" x-text="filteredModels(field.key).length + ' model' + (filteredModels(field.key).length === 1 ? '' : 's')"></div>
+                                  <div
+                                    @click="selectModel(field.key, m)"
+                                    @mouseenter="combos[field.key] = combos[field.key] || {open:true,idx:-1}; combos[field.key].idx = i"
+                                    class="flex items-center gap-1.5 px-3 py-2.5 text-sm cursor-pointer border-b border-[#1f1f23] last:border-b-0 transition-colors"
+                                    :class="i === combos[field.key]?.idx ? 'bg-[#2fb984]/15 text-white' : 'text-[#c5c2bd] hover:bg-white/[0.04]'"
+                                  >
+                                    <span
+                                      class="text-[#2fb984] font-medium shrink-0"
+                                      x-text="m.split('/')[0] + '/'"
+                                    ></span>
+                                    <span
+                                      class="truncate"
+                                      x-text="m.split('/').slice(1).join('/')"
+                                    ></span>
+                                  </div>
+                                </template>
+                                <div
+                                  class="px-3 py-1.5 text-[10px] text-[#6b635a] border-t border-[#1f1f23]"
+                                  x-text="filteredModels(field.key).length + ' model' + (filteredModels(field.key).length === 1 ? '' : 's')"
+                                ></div>
+                              </div>
                             </div>
-                          </div>
-                        </template>
+                          </template>
 
-                        <!-- text / number -->
-                        <template x-if="(field.type === 'text' && !field.key.startsWith('MODEL')) || field.type === 'number'">
-                          <input
-                            :type="field.type === 'number' ? 'number' : 'text'"
-                            :id="'fld-' + field.key"
-                            x-model="fieldValues[field.key]"
-                            :disabled="field.locked"
-                            class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
-                          />
-                        </template>
-
-                        <!-- secret (with show/hide toggle) -->
-                        <template x-if="field.type === 'secret'">
-                          <div class="relative">
+                          <!-- text / number -->
+                          <template
+                            x-if="(field.type === 'text' && !field.key.startsWith('MODEL')) || field.type === 'number'"
+                          >
                             <input
-                              :type="showSecrets[field.key] ? 'text' : 'password'"
+                              :type="field.type === 'number' ? 'number' : 'text'"
                               :id="'fld-' + field.key"
                               x-model="fieldValues[field.key]"
-                              :placeholder="field.configured ? 'Configured — enter new value to replace' : 'Not configured'"
                               :disabled="field.locked"
-                              autocomplete="off"
-                              class="w-full h-10 px-3 pr-10 rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                              :class="errCls(field.key)"
+                              class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
                             />
+                          </template>
+
+                          <!-- secret (with show/hide toggle) -->
+                          <template x-if="field.type === 'secret'">
+                            <div class="relative">
+                              <input
+                                :type="showSecrets[field.key] ? 'text' : 'password'"
+                                :id="'fld-' + field.key"
+                                x-model="fieldValues[field.key]"
+                                :placeholder="field.configured ? 'Configured — enter new value to replace' : 'Not configured'"
+                                :disabled="field.locked"
+                                autocomplete="off"
+                                :class="errCls(field.key)"
+                                class="w-full h-10 px-3 pr-10 rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                              />
+                              <button
+                                type="button"
+                                class="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-[#8b8b95] hover:text-white transition-colors"
+                                @click="showSecrets[field.key] = !showSecrets[field.key]"
+                                x-text="showSecrets[field.key] ? '🙈' : '👁️'"
+                              ></button>
+                            </div>
+                          </template>
+
+                          <!-- boolean (toggle switch) -->
+                          <template x-if="field.type === 'boolean'">
                             <button
                               type="button"
-                              class="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-[#8b8b95] hover:text-white transition-colors"
-                              @click="showSecrets[field.key] = !showSecrets[field.key]"
-                              x-text="showSecrets[field.key] ? '🙈' : '👁️'"
-                            ></button>
-                          </div>
-                        </template>
+                              role="switch"
+                              :aria-checked="fieldValues[field.key] === 'true'"
+                              @click="toggleField(field.key)"
+                              :disabled="field.locked"
+                              class="relative inline-flex h-6 w-11 items-center rounded-full border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#2fb984]/50 disabled:cursor-not-allowed disabled:opacity-50"
+                              :class="fieldValues[field.key] === 'true' ? 'bg-[#2fb984] border-[#2fb984]' : 'bg-[#19191c] border-[#2b2b30]'"
+                            >
+                              <span
+                                class="inline-block h-4 w-4 rounded-full bg-white transition-transform duration-200"
+                                :class="fieldValues[field.key] === 'true' ? 'translate-x-[22px]' : 'translate-x-[3px]'"
+                              ></span>
+                            </button>
+                          </template>
 
-                        <!-- boolean (toggle switch) -->
-                        <template x-if="field.type === 'boolean'">
-                          <button
-                            type="button"
-                            role="switch"
-                            :aria-checked="fieldValues[field.key] === 'true'"
-                            @click="toggleField(field.key)"
-                            :disabled="field.locked"
-                            class="relative inline-flex h-6 w-11 items-center rounded-full border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#2fb984]/50 disabled:cursor-not-allowed disabled:opacity-50"
-                            :class="fieldValues[field.key] === 'true' ? 'bg-[#2fb984] border-[#2fb984]' : 'bg-[#19191c] border-[#2b2b30]'"
+                          <!-- tri_boolean -->
+                          <template x-if="field.type === 'tri_boolean'">
+                            <div class="relative">
+                              <select
+                                x-model="fieldValues[field.key]"
+                                :disabled="field.locked"
+                                :class="errCls(field.key)"
+                                class="w-full h-10 pl-3 pr-9 rounded-lg border border-[#2b2b30] bg-[#121214] text-sm text-white outline-none focus:border-[#2fb984] focus:ring-1 focus:ring-[#2fb984]/30 transition-all appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <option value="">Inherit</option>
+                                <option value="true">Enabled</option>
+                                <option value="false">Disabled</option>
+                              </select>
+                              <svg
+                                class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b635a] pointer-events-none"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M8 9l4 4 4-4"
+                                />
+                              </svg>
+                            </div>
+                          </template>
+
+                          <!-- select -->
+                          <template x-if="field.type === 'select'">
+                            <div class="relative">
+                              <select
+                                x-model="fieldValues[field.key]"
+                                :disabled="field.locked"
+                                :class="errCls(field.key)"
+                                class="w-full h-10 pl-3 pr-9 rounded-lg border border-[#2b2b30] bg-[#121214] text-sm text-white outline-none focus:border-[#2fb984] focus:ring-1 focus:ring-[#2fb984]/30 transition-all appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <template
+                                  x-for="opt in field.options"
+                                  :key="opt"
+                                >
+                                  <option :value="opt" x-text="opt"></option>
+                                </template>
+                              </select>
+                              <svg
+                                class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b635a] pointer-events-none"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M8 9l4 4 4-4"
+                                />
+                              </svg>
+                            </div>
+                          </template>
+
+                          <!-- textarea -->
+                          <template x-if="field.type === 'textarea'">
+                            <textarea
+                              :id="'fld-' + field.key"
+                              x-model="fieldValues[field.key]"
+                              :disabled="field.locked"
+                              :class="errCls(field.key)"
+                              class="w-full rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors p-3 min-h-[90px] resize-y disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                            ></textarea>
+                          </template>
+
+                          <!-- description -->
+                          <p
+                            x-show="field.description"
+                            class="text-xs text-[#8b8b95]"
+                            x-text="field.description"
+                          ></p>
+                          <p
+                            x-show="validationErrors[field.key]"
+                            class="text-xs text-[#ff746c]"
+                            x-text="validationErrors[field.key]"
+                          ></p>
+                        </div>
+                      </template>
+                    </template>
+                  </div>
+                  <!-- Advanced toggle -->
+                  <button
+                    x-show="hasAdvanced(section.id)"
+                    type="button"
+                    @click="showAdvanced[section.id] = !showAdvanced[section.id]"
+                    class="mt-4 px-3 py-1.5 rounded-md border border-[#2b2b30] text-xs font-bold text-[#8b8b95] hover:text-white hover:border-[#2fb984] transition-colors bg-[#19191c]"
+                    x-text="showAdvanced[section.id] ? 'Hide advanced' : 'Show advanced'"
+                  ></button>
+                </div>
+              </template>
+
+              <!-- ── Provider strip ── -->
+              <section
+                class="border border-[#1f1f23] rounded-lg p-4 space-y-3"
+                aria-label="Provider status"
+              >
+                <div class="flex items-center justify-between">
+                  <h3 class="text-sm font-bold text-white">Providers</h3>
+                  <button
+                    type="button"
+                    class="text-xs text-[#2fb984] hover:text-white transition-colors"
+                    @click="showToast('Refreshing provider status…')"
+                  >
+                    Refresh all
+                  </button>
+                </div>
+                <div
+                  class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"
+                >
+                  <template x-for="p in providerStatus" :key="p.provider_id">
+                    <div
+                      class="border border-[#1f1f23] rounded-lg p-3 space-y-2 hover:border-[#2b2b30] transition-colors"
+                    >
+                      <div class="flex items-center justify-between gap-2">
+                        <span
+                          class="text-sm font-semibold text-white truncate"
+                          x-text="providerName(p.provider_id)"
+                        ></span>
+                        <span
+                          class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full border"
+                          :class="statusClass(p.status) === 'ok' ? 'text-[#59d994] border-[#59d994]/30 bg-[#59d994]/10' : statusClass(p.status) === 'warn' ? 'text-[#f5b74f] border-[#f5b74f]/30 bg-[#f5b74f]/10' : statusClass(p.status) === 'error' ? 'text-[#ff746c] border-[#ff746c]/30 bg-[#ff746c]/10' : 'text-[#8b8b95] border-[#2b2b30] bg-[#19191c]'"
+                          x-text="p.label"
+                        ></span>
+                      </div>
+                      <div
+                        class="text-xs text-[#8b8b95] truncate"
+                        x-text="p.kind === 'local' ? (p.base_url || 'No local URL configured') : (p.credential_env || '')"
+                      ></div>
+                      <button
+                        type="button"
+                        class="text-xs text-[#8b8b95] hover:text-white transition-colors"
+                        @click="testProvider(p.provider_id)"
+                        x-text="p.kind === 'local' ? 'Test' : 'Refresh models'"
+                      ></button>
+                    </div>
+                  </template>
+                </div>
+              </section>
+
+              <!-- ── Provider Config sections ── -->
+              <template
+                x-for="section in sectionsFor('providers,runtime')"
+                :key="'cfg-' + section.id"
+              >
+                <div class="settings-section" :id="'section-' + section.id">
+                  <div class="section-heading mb-4">
+                    <h2
+                      class="text-lg font-bold text-white"
+                      x-text="section.label"
+                    ></h2>
+                    <p
+                      class="text-xs text-[#8b8b95] mt-0.5"
+                      x-text="section.description"
+                    ></p>
+                  </div>
+                  <div class="field-grid grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Same field type template as above -->
+                    <template
+                      x-for="field in fieldsForSection(section.id)"
+                      :key="field.key"
+                    >
+                      <template
+                        x-if="!field.advanced || showAdvanced[section.id]"
+                      >
+                        <div class="space-y-1.5">
+                          <label
+                            :for="'fld-' + field.key"
+                            class="flex items-center justify-between text-sm font-semibold"
                           >
+                            <span x-text="field.label"></span>
                             <span
-                              class="inline-block h-4 w-4 rounded-full bg-white transition-transform duration-200"
-                              :class="fieldValues[field.key] === 'true' ? 'translate-x-[22px]' : 'translate-x-[3px]'"
+                              class="text-[10px] text-[#8b8b95] font-normal"
+                              x-text="sourceText(field)"
                             ></span>
-                          </button>
-                        </template>
+                          </label>
 
-                        <!-- tri_boolean -->
-                        <template x-if="field.type === 'tri_boolean'">
-                          <div class="relative">
+                          <template
+                            x-if="field.type === 'text' || field.type === 'number'"
+                          >
+                            <input
+                              :type="field.type === 'number' ? 'number' : 'text'"
+                              :id="'fld-' + field.key"
+                              x-model="fieldValues[field.key]"
+                              :disabled="field.locked"
+                              :list="field.key.startsWith('MODEL') ? 'model-options' : ''"
+                              :class="errCls(field.key)"
+                              class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                            />
+                          </template>
+
+                          <template x-if="field.type === 'secret'">
+                            <div class="relative">
+                              <input
+                                :type="showSecrets[field.key] ? 'text' : 'password'"
+                                :id="'fld-' + field.key"
+                                x-model="fieldValues[field.key]"
+                                :placeholder="field.configured ? 'Configured — enter new value to replace' : 'Not configured'"
+                                :disabled="field.locked"
+                                autocomplete="off"
+                                :class="errCls(field.key)"
+                                class="w-full h-10 px-3 pr-10 rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                              />
+                              <button
+                                type="button"
+                                class="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-[#8b8b95] hover:text-white transition-colors"
+                                @click="showSecrets[field.key] = !showSecrets[field.key]"
+                                x-text="showSecrets[field.key] ? '🙈' : '👁️'"
+                              ></button>
+                            </div>
+                          </template>
+
+                          <template x-if="field.type === 'boolean'">
+                            <button
+                              type="button"
+                              role="switch"
+                              :aria-checked="fieldValues[field.key] === 'true'"
+                              @click="toggleField(field.key)"
+                              :disabled="field.locked"
+                              class="relative inline-flex h-6 w-11 items-center rounded-full border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#2fb984]/50 disabled:cursor-not-allowed disabled:opacity-50"
+                              :class="fieldValues[field.key] === 'true' ? 'bg-[#2fb984] border-[#2fb984]' : 'bg-[#19191c] border-[#2b2b30]'"
+                            >
+                              <span
+                                class="inline-block h-4 w-4 rounded-full bg-white transition-transform duration-200"
+                                :class="fieldValues[field.key] === 'true' ? 'translate-x-[22px]' : 'translate-x-[3px]'"
+                              ></span>
+                            </button>
+                          </template>
+
+                          <template x-if="field.type === 'tri_boolean'">
                             <select
                               x-model="fieldValues[field.key]"
                               :disabled="field.locked"
-                              class="w-full h-10 pl-3 pr-9 rounded-lg border border-[#2b2b30] bg-[#121214] text-sm text-white outline-none focus:border-[#2fb984] focus:ring-1 focus:ring-[#2fb984]/30 transition-all appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                              :class="errCls(field.key)"
+                              class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-[#0c0c0d] text-sm text-white outline-none focus:border-[#2fb984] transition-colors appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               <option value="">Inherit</option>
                               <option value="true">Enabled</option>
                               <option value="false">Disabled</option>
                             </select>
-                            <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b635a] pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4 4 4-4"/></svg>
-                          </div>
-                        </template>
+                          </template>
 
-                        <!-- select -->
-                        <template x-if="field.type === 'select'">
-                          <div class="relative">
+                          <template x-if="field.type === 'select'">
                             <select
                               x-model="fieldValues[field.key]"
                               :disabled="field.locked"
-                              class="w-full h-10 pl-3 pr-9 rounded-lg border border-[#2b2b30] bg-[#121214] text-sm text-white outline-none focus:border-[#2fb984] focus:ring-1 focus:ring-[#2fb984]/30 transition-all appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                              :class="errCls(field.key)"
+                              class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-[#0c0c0d] text-sm text-white outline-none focus:border-[#2fb984] transition-colors appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               <template x-for="opt in field.options" :key="opt">
                                 <option :value="opt" x-text="opt"></option>
                               </template>
                             </select>
-                            <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b635a] pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4 4 4-4"/></svg>
-                          </div>
-                        </template>
+                          </template>
 
-                        <!-- textarea -->
-                        <template x-if="field.type === 'textarea'">
-                          <textarea
-                            :id="'fld-' + field.key"
-                            x-model="fieldValues[field.key]"
-                            :disabled="field.locked"
-                            class="w-full rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors p-3 min-h-[90px] resize-y disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
-                          ></textarea>
-                        </template>
+                          <template x-if="field.type === 'textarea'">
+                            <textarea
+                              :id="'fld-' + field.key"
+                              x-model="fieldValues[field.key]"
+                              :disabled="field.locked"
+                              :class="errCls(field.key)"
+                              class="w-full rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors p-3 min-h-[90px] resize-y disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                            ></textarea>
+                          </template>
 
-                        <!-- description -->
-                        <p
-                          x-show="field.description"
-                          class="text-xs text-[#8b8b95]"
-                          x-text="field.description"
-                        ></p>
-                      </div>
+                          <p
+                            x-show="field.description"
+                            class="text-xs text-[#8b8b95]"
+                            x-text="field.description"
+                          ></p>
+                          <p
+                            x-show="validationErrors[field.key]"
+                            class="text-xs text-[#ff746c]"
+                            x-text="validationErrors[field.key]"
+                          ></p>
+                        </div>
+                      </template>
                     </template>
-                  </template>
-                </div>
-                <!-- Advanced toggle -->
-                <button
-                  x-show="hasAdvanced(section.id)"
-                  type="button"
-                  @click="showAdvanced[section.id] = !showAdvanced[section.id]"
-                  class="mt-4 px-3 py-1.5 rounded-md border border-[#2b2b30] text-xs font-bold text-[#8b8b95] hover:text-white hover:border-[#2fb984] transition-colors bg-[#19191c]"
-                  x-text="showAdvanced[section.id] ? 'Hide advanced' : 'Show advanced'"
-                ></button>
-              </div>
-            </template>
-
-            <!-- ── Provider strip ── -->
-            <section class="border border-[#1f1f23] rounded-lg p-4 space-y-3" aria-label="Provider status">
-              <div class="flex items-center justify-between">
-                <h3 class="text-sm font-bold text-white">Providers</h3>
-                <button
-                  type="button"
-                  class="text-xs text-[#2fb984] hover:text-white transition-colors"
-                  @click="showToast('Refreshing provider status…')"
-                >
-                  Refresh all
-                </button>
-              </div>
-              <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                <template x-for="p in providerStatus" :key="p.provider_id">
-                  <div class="border border-[#1f1f23] rounded-lg p-3 space-y-2 hover:border-[#2b2b30] transition-colors">
-                    <div class="flex items-center justify-between gap-2">
-                      <span class="text-sm font-semibold text-white truncate" x-text="providerName(p.provider_id)"></span>
-                      <span
-                        class="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full border"
-                        :class="statusClass(p.status) === 'ok' ? 'text-[#59d994] border-[#59d994]/30 bg-[#59d994]/10' : statusClass(p.status) === 'warn' ? 'text-[#f5b74f] border-[#f5b74f]/30 bg-[#f5b74f]/10' : statusClass(p.status) === 'error' ? 'text-[#ff746c] border-[#ff746c]/30 bg-[#ff746c]/10' : 'text-[#8b8b95] border-[#2b2b30] bg-[#19191c]'"
-                        x-text="p.label"
-                      ></span>
-                    </div>
-                    <div class="text-xs text-[#8b8b95] truncate" x-text="p.kind === 'local' ? (p.base_url || 'No local URL configured') : (p.credential_env || '')"></div>
-                    <button
-                      type="button"
-                      class="text-xs text-[#8b8b95] hover:text-white transition-colors"
-                      @click="testProvider(p.provider_id)"
-                      x-text="p.kind === 'local' ? 'Test' : 'Refresh models'"
-                    ></button>
                   </div>
-                </template>
-              </div>
-            </section>
-
-            <!-- ── Provider Config sections ── -->
-            <template x-for="section in sectionsFor('providers,runtime')" :key="'cfg-' + section.id">
-              <div class="settings-section" :id="'section-' + section.id">
-                <div class="section-heading mb-4">
-                  <h2 class="text-lg font-bold text-white" x-text="section.label"></h2>
-                  <p class="text-xs text-[#8b8b95] mt-0.5" x-text="section.description"></p>
+                  <button
+                    x-show="hasAdvanced(section.id)"
+                    type="button"
+                    @click="showAdvanced[section.id] = !showAdvanced[section.id]"
+                    class="mt-4 px-3 py-1.5 rounded-md border border-[#2b2b30] text-xs font-bold text-[#8b8b95] hover:text-white hover:border-[#2fb984] transition-colors bg-[#19191c]"
+                    x-text="showAdvanced[section.id] ? 'Hide advanced' : 'Show advanced'"
+                  ></button>
                 </div>
-                <div class="field-grid grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <!-- Same field type template as above -->
-                  <template x-for="field in fieldsForSection(section.id)" :key="field.key">
-                    <template x-if="!field.advanced || showAdvanced[section.id]">
-                      <div class="space-y-1.5">
-                        <label :for="'fld-' + field.key" class="flex items-center justify-between text-sm font-semibold">
-                          <span x-text="field.label"></span>
-                          <span class="text-[10px] text-[#8b8b95] font-normal" x-text="sourceText(field)"></span>
-                        </label>
+              </template>
 
-                        <template x-if="field.type === 'text' || field.type === 'number'">
-                          <input
-                            :type="field.type === 'number' ? 'number' : 'text'"
-                            :id="'fld-' + field.key"
-                            x-model="fieldValues[field.key]"
-                            :disabled="field.locked"
-                            :list="field.key.startsWith('MODEL') ? 'model-options' : ''"
-                            class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
-                          />
-                        </template>
+              <!-- ── Model sections (thinking, web_tools) ── -->
+              <template
+                x-for="section in sectionsFor('thinking,web_tools')"
+                :key="'mdl-' + section.id"
+              >
+                <div class="settings-section" :id="'section-' + section.id">
+                  <div class="section-heading mb-4">
+                    <h2
+                      class="text-lg font-bold text-white"
+                      x-text="section.label"
+                    ></h2>
+                    <p
+                      class="text-xs text-[#8b8b95] mt-0.5"
+                      x-text="section.description"
+                    ></p>
+                  </div>
+                  <div class="field-grid grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <template
+                      x-for="field in fieldsForSection(section.id)"
+                      :key="field.key"
+                    >
+                      <template
+                        x-if="!field.advanced || showAdvanced[section.id]"
+                      >
+                        <div class="space-y-1.5">
+                          <label
+                            :for="'fld-' + field.key"
+                            class="flex items-center justify-between text-sm font-semibold"
+                          >
+                            <span x-text="field.label"></span>
+                            <span
+                              class="text-[10px] text-[#8b8b95] font-normal"
+                              x-text="sourceText(field)"
+                            ></span>
+                          </label>
 
-                        <template x-if="field.type === 'secret'">
-                          <div class="relative">
+                          <template
+                            x-if="field.type === 'text' || field.type === 'number'"
+                          >
                             <input
-                              :type="showSecrets[field.key] ? 'text' : 'password'"
+                              :type="field.type === 'number' ? 'number' : 'text'"
                               :id="'fld-' + field.key"
                               x-model="fieldValues[field.key]"
-                              :placeholder="field.configured ? 'Configured — enter new value to replace' : 'Not configured'"
                               :disabled="field.locked"
-                              autocomplete="off"
-                              class="w-full h-10 px-3 pr-10 rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                              :class="errCls(field.key)"
+                              class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
                             />
+                          </template>
+
+                          <template x-if="field.type === 'boolean'">
                             <button
                               type="button"
-                              class="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-[#8b8b95] hover:text-white transition-colors"
-                              @click="showSecrets[field.key] = !showSecrets[field.key]"
-                              x-text="showSecrets[field.key] ? '🙈' : '👁️'"
-                            ></button>
-                          </div>
-                        </template>
+                              role="switch"
+                              :aria-checked="fieldValues[field.key] === 'true'"
+                              @click="toggleField(field.key)"
+                              :disabled="field.locked"
+                              class="relative inline-flex h-6 w-11 items-center rounded-full border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#2fb984]/50 disabled:cursor-not-allowed disabled:opacity-50"
+                              :class="fieldValues[field.key] === 'true' ? 'bg-[#2fb984] border-[#2fb984]' : 'bg-[#19191c] border-[#2b2b30]'"
+                            >
+                              <span
+                                class="inline-block h-4 w-4 rounded-full bg-white transition-transform duration-200"
+                                :class="fieldValues[field.key] === 'true' ? 'translate-x-[22px]' : 'translate-x-[3px]'"
+                              ></span>
+                            </button>
+                          </template>
 
-                        <template x-if="field.type === 'boolean'">
-                          <button
-                            type="button" role="switch"
-                            :aria-checked="fieldValues[field.key] === 'true'"
-                            @click="toggleField(field.key)"
-                            :disabled="field.locked"
-                            class="relative inline-flex h-6 w-11 items-center rounded-full border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#2fb984]/50 disabled:cursor-not-allowed disabled:opacity-50"
-                            :class="fieldValues[field.key] === 'true' ? 'bg-[#2fb984] border-[#2fb984]' : 'bg-[#19191c] border-[#2b2b30]'"
-                          >
-                            <span
-                              class="inline-block h-4 w-4 rounded-full bg-white transition-transform duration-200"
-                              :class="fieldValues[field.key] === 'true' ? 'translate-x-[22px]' : 'translate-x-[3px]'"
-                            ></span>
-                          </button>
-                        </template>
+                          <template x-if="field.type === 'select'">
+                            <select
+                              x-model="fieldValues[field.key]"
+                              :disabled="field.locked"
+                              :class="errCls(field.key)"
+                              class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-[#0c0c0d] text-sm text-white outline-none focus:border-[#2fb984] transition-colors appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              <template x-for="opt in field.options" :key="opt">
+                                <option :value="opt" x-text="opt"></option>
+                              </template>
+                            </select>
+                          </template>
 
-                        <template x-if="field.type === 'tri_boolean'">
-                          <select
-                            x-model="fieldValues[field.key]"
-                            :disabled="field.locked"
-                            class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-[#0c0c0d] text-sm text-white outline-none focus:border-[#2fb984] transition-colors appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            <option value="">Inherit</option>
-                            <option value="true">Enabled</option>
-                            <option value="false">Disabled</option>
-                          </select>
-                        </template>
-
-                        <template x-if="field.type === 'select'">
-                          <select
-                            x-model="fieldValues[field.key]"
-                            :disabled="field.locked"
-                            class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-[#0c0c0d] text-sm text-white outline-none focus:border-[#2fb984] transition-colors appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            <template x-for="opt in field.options" :key="opt">
-                              <option :value="opt" x-text="opt"></option>
-                            </template>
-                          </select>
-                        </template>
-
-                        <template x-if="field.type === 'textarea'">
-                          <textarea
-                            :id="'fld-' + field.key"
-                            x-model="fieldValues[field.key]"
-                            :disabled="field.locked"
-                            class="w-full rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors p-3 min-h-[90px] resize-y disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
-                          ></textarea>
-                        </template>
-
-                        <p x-show="field.description" class="text-xs text-[#8b8b95]" x-text="field.description"></p>
-                      </div>
+                          <p
+                            x-show="field.description"
+                            class="text-xs text-[#8b8b95]"
+                            x-text="field.description"
+                          ></p>
+                          <p
+                            x-show="validationErrors[field.key]"
+                            class="text-xs text-[#ff746c]"
+                            x-text="validationErrors[field.key]"
+                          ></p>
+                        </div>
+                      </template>
                     </template>
-                  </template>
+                  </div>
                 </div>
-                <button
-                  x-show="hasAdvanced(section.id)"
-                  type="button"
-                  @click="showAdvanced[section.id] = !showAdvanced[section.id]"
-                  class="mt-4 px-3 py-1.5 rounded-md border border-[#2b2b30] text-xs font-bold text-[#8b8b95] hover:text-white hover:border-[#2fb984] transition-colors bg-[#19191c]"
-                  x-text="showAdvanced[section.id] ? 'Hide advanced' : 'Show advanced'"
-                ></button>
-              </div>
-            </template>
+              </template>
 
-            <!-- ── Model sections (thinking, web_tools) ── -->
-            <template x-for="section in sectionsFor('thinking,web_tools')" :key="'mdl-' + section.id">
-              <div class="settings-section" :id="'section-' + section.id">
-                <div class="section-heading mb-4">
-                  <h2 class="text-lg font-bold text-white" x-text="section.label"></h2>
-                  <p class="text-xs text-[#8b8b95] mt-0.5" x-text="section.description"></p>
-                </div>
-                <div class="field-grid grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <template x-for="field in fieldsForSection(section.id)" :key="field.key">
-                    <template x-if="!field.advanced || showAdvanced[section.id]">
-                      <div class="space-y-1.5">
-                        <label :for="'fld-' + field.key" class="flex items-center justify-between text-sm font-semibold">
-                          <span x-text="field.label"></span>
-                          <span class="text-[10px] text-[#8b8b95] font-normal" x-text="sourceText(field)"></span>
-                        </label>
-
-                        <template x-if="field.type === 'text' || field.type === 'number'">
-                          <input
-                            :type="field.type === 'number' ? 'number' : 'text'"
-                            :id="'fld-' + field.key"
-                            x-model="fieldValues[field.key]"
-                            :disabled="field.locked"
-                            class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
-                          />
-                        </template>
-
-                        <template x-if="field.type === 'boolean'">
-                          <button
-                            type="button" role="switch"
-                            :aria-checked="fieldValues[field.key] === 'true'"
-                            @click="toggleField(field.key)"
-                            :disabled="field.locked"
-                            class="relative inline-flex h-6 w-11 items-center rounded-full border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#2fb984]/50 disabled:cursor-not-allowed disabled:opacity-50"
-                            :class="fieldValues[field.key] === 'true' ? 'bg-[#2fb984] border-[#2fb984]' : 'bg-[#19191c] border-[#2b2b30]'"
+              <!-- ── Messaging sections ── -->
+              <template
+                x-for="section in sectionsFor('messaging,voice,diagnostics,smoke')"
+                :key="'msg-' + section.id"
+              >
+                <div class="settings-section" :id="'section-' + section.id">
+                  <div class="section-heading mb-4">
+                    <h2
+                      class="text-lg font-bold text-white"
+                      x-text="section.label"
+                    ></h2>
+                    <p
+                      class="text-xs text-[#8b8b95] mt-0.5"
+                      x-text="section.description"
+                    ></p>
+                  </div>
+                  <div class="field-grid grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <template
+                      x-for="field in fieldsForSection(section.id)"
+                      :key="field.key"
+                    >
+                      <template
+                        x-if="!field.advanced || showAdvanced[section.id]"
+                      >
+                        <div class="space-y-1.5">
+                          <label
+                            :for="'fld-' + field.key"
+                            class="flex items-center justify-between text-sm font-semibold"
                           >
+                            <span x-text="field.label"></span>
                             <span
-                              class="inline-block h-4 w-4 rounded-full bg-white transition-transform duration-200"
-                              :class="fieldValues[field.key] === 'true' ? 'translate-x-[22px]' : 'translate-x-[3px]'"
+                              class="text-[10px] text-[#8b8b95] font-normal"
+                              x-text="sourceText(field)"
                             ></span>
-                          </button>
-                        </template>
+                          </label>
 
-                        <template x-if="field.type === 'select'">
-                          <select
-                            x-model="fieldValues[field.key]"
-                            :disabled="field.locked"
-                            class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-[#0c0c0d] text-sm text-white outline-none focus:border-[#2fb984] transition-colors appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                          <template
+                            x-if="field.type === 'text' || field.type === 'number'"
                           >
-                            <template x-for="opt in field.options" :key="opt">
-                              <option :value="opt" x-text="opt"></option>
-                            </template>
-                          </select>
-                        </template>
-
-                        <p x-show="field.description" class="text-xs text-[#8b8b95]" x-text="field.description"></p>
-                      </div>
-                    </template>
-                  </template>
-                </div>
-              </div>
-            </template>
-
-            <!-- ── Messaging sections ── -->
-            <template x-for="section in sectionsFor('messaging,voice,diagnostics,smoke')" :key="'msg-' + section.id">
-              <div class="settings-section" :id="'section-' + section.id">
-                <div class="section-heading mb-4">
-                  <h2 class="text-lg font-bold text-white" x-text="section.label"></h2>
-                  <p class="text-xs text-[#8b8b95] mt-0.5" x-text="section.description"></p>
-                </div>
-                <div class="field-grid grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <template x-for="field in fieldsForSection(section.id)" :key="field.key">
-                    <template x-if="!field.advanced || showAdvanced[section.id]">
-                      <div class="space-y-1.5">
-                        <label :for="'fld-' + field.key" class="flex items-center justify-between text-sm font-semibold">
-                          <span x-text="field.label"></span>
-                          <span class="text-[10px] text-[#8b8b95] font-normal" x-text="sourceText(field)"></span>
-                        </label>
-
-                        <template x-if="field.type === 'text' || field.type === 'number'">
-                          <input
-                            :type="field.type === 'number' ? 'number' : 'text'"
-                            :id="'fld-' + field.key"
-                            x-model="fieldValues[field.key]"
-                            :disabled="field.locked"
-                            class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
-                          />
-                        </template>
-
-                        <template x-if="field.type === 'secret'">
-                          <div class="relative">
                             <input
-                              :type="showSecrets[field.key] ? 'text' : 'password'"
+                              :type="field.type === 'number' ? 'number' : 'text'"
                               :id="'fld-' + field.key"
                               x-model="fieldValues[field.key]"
-                              :placeholder="field.configured ? 'Configured — enter new value to replace' : 'Not configured'"
                               :disabled="field.locked"
-                              autocomplete="off"
-                              class="w-full h-10 px-3 pr-10 rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                              :class="errCls(field.key)"
+                              class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
                             />
+                          </template>
+
+                          <template x-if="field.type === 'secret'">
+                            <div class="relative">
+                              <input
+                                :type="showSecrets[field.key] ? 'text' : 'password'"
+                                :id="'fld-' + field.key"
+                                x-model="fieldValues[field.key]"
+                                :placeholder="field.configured ? 'Configured — enter new value to replace' : 'Not configured'"
+                                :disabled="field.locked"
+                                autocomplete="off"
+                                :class="errCls(field.key)"
+                                class="w-full h-10 px-3 pr-10 rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                              />
+                              <button
+                                type="button"
+                                class="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-[#8b8b95] hover:text-white transition-colors"
+                                @click="showSecrets[field.key] = !showSecrets[field.key]"
+                                x-text="showSecrets[field.key] ? '🙈' : '👁️'"
+                              ></button>
+                            </div>
+                          </template>
+
+                          <template x-if="field.type === 'boolean'">
                             <button
                               type="button"
-                              class="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-[#8b8b95] hover:text-white transition-colors"
-                              @click="showSecrets[field.key] = !showSecrets[field.key]"
-                              x-text="showSecrets[field.key] ? '🙈' : '👁️'"
-                            ></button>
-                          </div>
-                        </template>
+                              role="switch"
+                              :aria-checked="fieldValues[field.key] === 'true'"
+                              @click="toggleField(field.key)"
+                              :disabled="field.locked"
+                              class="relative inline-flex h-6 w-11 items-center rounded-full border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#2fb984]/50 disabled:cursor-not-allowed disabled:opacity-50"
+                              :class="fieldValues[field.key] === 'true' ? 'bg-[#2fb984] border-[#2fb984]' : 'bg-[#19191c] border-[#2b2b30]'"
+                            >
+                              <span
+                                class="inline-block h-4 w-4 rounded-full bg-white transition-transform duration-200"
+                                :class="fieldValues[field.key] === 'true' ? 'translate-x-[22px]' : 'translate-x-[3px]'"
+                              ></span>
+                            </button>
+                          </template>
 
-                        <template x-if="field.type === 'boolean'">
-                          <button
-                            type="button" role="switch"
-                            :aria-checked="fieldValues[field.key] === 'true'"
-                            @click="toggleField(field.key)"
-                            :disabled="field.locked"
-                            class="relative inline-flex h-6 w-11 items-center rounded-full border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#2fb984]/50 disabled:cursor-not-allowed disabled:opacity-50"
-                            :class="fieldValues[field.key] === 'true' ? 'bg-[#2fb984] border-[#2fb984]' : 'bg-[#19191c] border-[#2b2b30]'"
-                          >
-                            <span
-                              class="inline-block h-4 w-4 rounded-full bg-white transition-transform duration-200"
-                              :class="fieldValues[field.key] === 'true' ? 'translate-x-[22px]' : 'translate-x-[3px]'"
-                            ></span>
-                          </button>
-                        </template>
+                          <template x-if="field.type === 'select'">
+                            <select
+                              x-model="fieldValues[field.key]"
+                              :disabled="field.locked"
+                              :class="errCls(field.key)"
+                              class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-[#0c0c0d] text-sm text-white outline-none focus:border-[#2fb984] transition-colors appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              <template x-for="opt in field.options" :key="opt">
+                                <option :value="opt" x-text="opt"></option>
+                              </template>
+                            </select>
+                          </template>
 
-                        <template x-if="field.type === 'select'">
-                          <select
-                            x-model="fieldValues[field.key]"
-                            :disabled="field.locked"
-                            class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-[#0c0c0d] text-sm text-white outline-none focus:border-[#2fb984] transition-colors appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            <template x-for="opt in field.options" :key="opt">
-                              <option :value="opt" x-text="opt"></option>
-                            </template>
-                          </select>
-                        </template>
+                          <template x-if="field.type === 'textarea'">
+                            <textarea
+                              :id="'fld-' + field.key"
+                              x-model="fieldValues[field.key]"
+                              :disabled="field.locked"
+                              :class="errCls(field.key)"
+                              class="w-full rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors p-3 min-h-[90px] resize-y disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                            ></textarea>
+                          </template>
 
-                        <template x-if="field.type === 'textarea'">
-                          <textarea
-                            :id="'fld-' + field.key"
-                            x-model="fieldValues[field.key]"
-                            :disabled="field.locked"
-                            class="w-full rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors p-3 min-h-[90px] resize-y disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
-                          ></textarea>
-                        </template>
-
-                        <p x-show="field.description" class="text-xs text-[#8b8b95]" x-text="field.description"></p>
-                      </div>
+                          <p
+                            x-show="field.description"
+                            class="text-xs text-[#8b8b95]"
+                            x-text="field.description"
+                          ></p>
+                          <p
+                            x-show="validationErrors[field.key]"
+                            class="text-xs text-[#ff746c]"
+                            x-text="validationErrors[field.key]"
+                          ></p>
+                        </div>
+                      </template>
                     </template>
-                  </template>
+                  </div>
+                  <button
+                    x-show="hasAdvanced(section.id)"
+                    type="button"
+                    @click="showAdvanced[section.id] = !showAdvanced[section.id]"
+                    class="mt-4 px-3 py-1.5 rounded-md border border-[#2b2b30] text-xs font-bold text-[#8b8b95] hover:text-white hover:border-[#2fb984] transition-colors bg-[#19191c]"
+                    x-text="showAdvanced[section.id] ? 'Hide advanced' : 'Show advanced'"
+                  ></button>
                 </div>
-                <button
-                  x-show="hasAdvanced(section.id)"
-                  type="button"
-                  @click="showAdvanced[section.id] = !showAdvanced[section.id]"
-                  class="mt-4 px-3 py-1.5 rounded-md border border-[#2b2b30] text-xs font-bold text-[#8b8b95] hover:text-white hover:border-[#2fb984] transition-colors bg-[#19191c]"
-                  x-text="showAdvanced[section.id] ? 'Hide advanced' : 'Show advanced'"
-                ></button>
-              </div>
-            </template>
-
-          </div><!-- /real content -->
-        </div><!-- /scrollable content area -->
-      </div><!-- /main inner -->
-
-      <!-- ── Action bar (fixed at bottom) ── -->
-      <footer class="fixed bottom-0 right-0 left-0 lg:left-60 z-30 flex items-center justify-between gap-4 h-16 px-5 lg:px-10 border-t border-[#1f1f23] bg-[#0c0c0d]/95 backdrop-blur-lg">
-        <span class="text-sm text-[#8b8b95]">
-          <span x-show="dirtyCount" class="text-[#2fb984] font-semibold" x-text="dirtyCount"></span>
-          <span x-show="dirtyCount" x-text="dirtyCount === 1 ? ' unsaved change' : ' unsaved changes'"></span>
-          <span x-show="!dirtyCount">No changes</span>
-        </span>
-        <div class="flex items-center gap-2">
-          <div id="messageArea" class="text-sm text-[#8b8b95] mr-2" x-show="toast.show" x-text="toast.message"></div>
-          <button
-            type="button"
-            class="px-4 py-2 rounded-lg border border-[#2b2b30] text-sm font-bold text-white bg-[#19191c] hover:border-[#2fb984] transition-colors"
-            @click="validateAndShow()"
-          >
-            Validate
-          </button>
-          <button
-            type="button"
-            class="px-4 py-2 rounded-lg border text-sm font-bold transition-colors"
-            :class="dirtyCount === 0 ? 'border-[#2b2b30] bg-[#19191c] text-[#6b635a] cursor-not-allowed' : 'border-[#2fb984] bg-[#2fb984] text-black hover:bg-[#24946b] cursor-pointer'"
-            :disabled="dirtyCount === 0"
-            @click="apply()"
-          >
-            Apply
-          </button>
+              </template>
+            </div>
+            <!-- /real content -->
+          </div>
+          <!-- /scrollable content area -->
         </div>
-      </footer>
-    </main>
-  </div>
+        <!-- /main inner -->
 
-  <!-- ── Datalist for model autocomplete ── -->
-  <datalist id="model-options">
-    <template x-for="m in modelOptions" :key="m">
-      <option :value="m"></option>
-    </template>
-  </datalist>
+        <!-- ── Action bar (fixed at bottom) ── -->
+        <footer
+          class="fixed bottom-0 right-0 left-0 lg:left-60 z-30 flex items-center justify-between gap-4 h-16 px-5 lg:px-10 border-t border-[#1f1f23] bg-[#0c0c0d]/95 backdrop-blur-lg"
+        >
+          <span class="text-sm text-[#8b8b95]">
+            <span
+              x-show="dirtyCount"
+              class="text-[#2fb984] font-semibold"
+              x-text="dirtyCount"
+            ></span>
+            <span
+              x-show="dirtyCount"
+              x-text="dirtyCount === 1 ? ' unsaved change' : ' unsaved changes'"
+            ></span>
+            <span x-show="!dirtyCount">No changes</span>
+          </span>
+          <div class="flex items-center gap-2">
+            <div
+              id="messageArea"
+              class="text-sm text-[#8b8b95] mr-2"
+              x-show="toast.show"
+              x-text="toast.message"
+            ></div>
+            <button
+              type="button"
+              class="px-4 py-2 rounded-lg border border-[#2b2b30] text-sm font-bold text-white bg-[#19191c] hover:border-[#2fb984] transition-colors"
+              @click="validateAndShow()"
+            >
+              Validate
+            </button>
+            <button
+              type="button"
+              class="px-4 py-2 rounded-lg border text-sm font-bold transition-colors"
+              :class="dirtyCount === 0 ? 'border-[#2b2b30] bg-[#19191c] text-[#6b635a] cursor-not-allowed' : 'border-[#2fb984] bg-[#2fb984] text-black hover:bg-[#24946b] cursor-pointer'"
+              :disabled="dirtyCount === 0"
+              @click="apply()"
+            >
+              Apply
+            </button>
+          </div>
+        </footer>
+      </main>
+    </div>
 
-  <script src="/admin/assets/admin.js"></script>
-</body>
+    <!-- ── Datalist for model autocomplete ── -->
+    <datalist id="model-options">
+      <template x-for="m in modelOptions" :key="m">
+        <option :value="m"></option>
+      </template>
+    </datalist>
+
+    <script src="/admin/assets/admin.js"></script>
+  </body>
 </html>
