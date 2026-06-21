@@ -7,6 +7,17 @@ const state = {
 
 const MASKED_SECRET = "********";
 
+const NAV_GROUPS = [
+  { label: "Configuration", icon: "⚙️", sections: ["providers", "runtime"] },
+  {
+    label: "Models",
+    icon: "🖥️",
+    sections: ["models", "thinking", "web_tools"],
+  },
+  { label: "Messaging", icon: "💬", sections: ["messaging", "voice"] },
+  { label: "Diagnostics", icon: "🛠️", sections: ["diagnostics", "smoke"] },
+];
+
 const byId = (id) => document.getElementById(id);
 
 function sourceLabel(source) {
@@ -18,7 +29,9 @@ function sourceLabel(source) {
     explicit_env_file: "FCC_ENV_FILE",
     process: "process env",
   };
-  return Object.prototype.hasOwnProperty.call(labels, source) ? labels[source] : source;
+  return Object.prototype.hasOwnProperty.call(labels, source)
+    ? labels[source]
+    : source;
 }
 
 function sourceText(field) {
@@ -80,6 +93,10 @@ async function load() {
   state.fields = new Map(config.fields.map((field) => [field.key, field]));
   renderProviders(config.provider_status);
   renderSections(config.sections, config.fields);
+  renderSidebar(config.sections);
+  setupScrollSpy();
+  setupSearch();
+  setupMobileToggle();
   await validate(false);
   await refreshLocalStatus();
   // Populate model datalist from server cache (zero provider API calls)
@@ -87,7 +104,9 @@ async function load() {
     const status = await api("/admin/api/status");
     const cachedModels = status.cached_models || {};
     state.modelOptions = Object.entries(cachedModels)
-      .flatMap(([providerId, models]) => models.map(model => `${providerId}/${model}`))
+      .flatMap(([providerId, models]) =>
+        models.map((model) => `${providerId}/${model}`),
+      )
       .sort();
     syncModelDatalist();
   } catch (e) {
@@ -127,7 +146,9 @@ function renderProviders(providerStatus) {
     button.type = "button";
     button.className = "test-button";
     button.textContent = provider.kind === "local" ? "Test" : "Refresh models";
-    button.addEventListener("click", () => testProvider(provider.provider_id, button));
+    button.addEventListener("click", () =>
+      testProvider(provider.provider_id, button),
+    );
 
     card.append(title, meta, button);
     grid.appendChild(card);
@@ -148,7 +169,8 @@ function updateProviderCard(providerId, status, label, metaText) {
 function renderSections(sections, fields) {
   const fieldsBySection = new Map();
   fields.forEach((field) => {
-    if (!fieldsBySection.has(field.section)) fieldsBySection.set(field.section, []);
+    if (!fieldsBySection.has(field.section))
+      fieldsBySection.set(field.section, []);
     fieldsBySection.get(field.section).push(field);
   });
 
@@ -161,6 +183,128 @@ function renderSections(sections, fields) {
       if (!section || sectionFields.length === 0) return;
       container.appendChild(renderSection(section, sectionFields));
     });
+  });
+}
+
+function renderSidebar(sections) {
+  const nav = byId("sidebarNav");
+  nav.innerHTML = "";
+
+  NAV_GROUPS.forEach((group) => {
+    const groupSections = group.sections
+      .map((id) => sections.find((s) => s.id === id))
+      .filter(Boolean);
+    if (groupSections.length === 0) return;
+
+    const details = document.createElement("details");
+    details.className = "nav-group";
+    details.open = true;
+
+    const summary = document.createElement("summary");
+    const icon = document.createElement("span");
+    icon.className = "group-icon";
+    icon.textContent = group.icon;
+    summary.appendChild(icon);
+    summary.append(group.label);
+    details.appendChild(summary);
+
+    groupSections.forEach((section) => {
+      const a = document.createElement("a");
+      a.className = "nav-item";
+      a.href = `#section-${section.id}`;
+      a.dataset.sectionId = section.id;
+      a.textContent = section.label;
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        const target = byId(`section-${section.id}`);
+        if (target) {
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+          setActiveNav(section.id);
+        }
+        // Close mobile drawer on nav click
+        closeSidebar();
+      });
+      details.appendChild(a);
+    });
+
+    nav.appendChild(details);
+  });
+}
+
+function setActiveNav(sectionId) {
+  document.querySelectorAll(".nav-item").forEach((item) => {
+    item.classList.toggle("active", item.dataset.sectionId === sectionId);
+  });
+}
+
+function closeSidebar() {
+  byId("sidebar").classList.remove("open");
+  byId("sidebarOverlay").classList.remove("open");
+}
+
+function openSidebar() {
+  byId("sidebar").classList.add("open");
+  byId("sidebarOverlay").classList.add("open");
+}
+
+function setupScrollSpy() {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const sectionId = entry.target.id.replace("section-", "");
+          setActiveNav(sectionId);
+        }
+      });
+    },
+    { rootMargin: "-20% 0px -70% 0px" },
+  );
+
+  document
+    .querySelectorAll("[id^='section-']")
+    .forEach((el) => observer.observe(el));
+}
+
+function setupSearch() {
+  const input = byId("sidebarSearch");
+  if (!input) return;
+
+  input.addEventListener("input", () => {
+    const query = input.value.trim().toLowerCase();
+    document.querySelectorAll(".nav-item").forEach((item) => {
+      const match = !query || item.textContent.toLowerCase().includes(query);
+      item.style.display = match ? "" : "none";
+      if (match && query) {
+        item.classList.add("active");
+        item.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else if (!query) {
+        item.classList.remove("active");
+      }
+    });
+    // Show/hide groups based on visible children
+    document.querySelectorAll(".nav-group").forEach((group) => {
+      const visible = Array.from(group.querySelectorAll(".nav-item")).some(
+        (item) => item.style.display !== "none",
+      );
+      group.style.display = visible || !query ? "" : "none";
+    });
+  });
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      input.value = "";
+      input.dispatchEvent(new Event("input"));
+      input.blur();
+    }
+  });
+}
+
+function setupMobileToggle() {
+  byId("hamburgerBtn")?.addEventListener("click", openSidebar);
+  byId("sidebarOverlay")?.addEventListener("click", closeSidebar);
+  // Close sidebar on Escape
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeSidebar();
   });
 }
 
@@ -320,7 +464,9 @@ function changedValues() {
 function updateDirtyState() {
   const count = Object.keys(changedValues()).length;
   byId("dirtyState").textContent =
-    count === 0 ? "No changes" : `${count} unsaved change${count === 1 ? "" : "s"}`;
+    count === 0
+      ? "No changes"
+      : `${count} unsaved change${count === 1 ? "" : "s"}`;
   byId("applyButton").disabled = count === 0;
 }
 
@@ -361,7 +507,9 @@ async function apply() {
     }, 1600);
     return;
   }
-  const pending = restart.required ? restart.fields || [] : result.pending_fields || [];
+  const pending = restart.required
+    ? restart.fields || []
+    : result.pending_fields || [];
   await load();
   showMessage(
     pending.length
@@ -378,7 +526,12 @@ async function refreshLocalStatus() {
     const meta = provider.status_code
       ? `${provider.base_url} returned HTTP ${provider.status_code}`
       : provider.base_url;
-    updateProviderCard(provider.provider_id, provider.status, provider.label, meta);
+    updateProviderCard(
+      provider.provider_id,
+      provider.status,
+      provider.label,
+      meta,
+    );
   });
 }
 
@@ -406,7 +559,12 @@ async function testProvider(providerId, button) {
       ).sort();
       syncModelDatalist();
     } else {
-      updateProviderCard(providerId, "offline", result.error_type, result.error_type);
+      updateProviderCard(
+        providerId,
+        "offline",
+        result.error_type,
+        result.error_type,
+      );
     }
   } finally {
     button.disabled = false;
@@ -422,7 +580,9 @@ function syncModelDatalist() {
     document.body.appendChild(datalist);
   }
   datalist.innerHTML = "";
-  state.modelOptions.forEach((model) => datalist.appendChild(option(model, model)));
+  state.modelOptions.forEach((model) =>
+    datalist.appendChild(option(model, model)),
+  );
 }
 
 function showMessage(message, kind = "") {
