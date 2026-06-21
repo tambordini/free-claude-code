@@ -7,6 +7,7 @@ name = "free-claude-code"
 version = "3.1.0"
 
 >>>>>>> 6c0f8b8 (style: Adjust layout of admin ui)
+
 description = "Middleware between Claude Code CLI (Anthropic API) and NVIDIA NIM"
 readme = "README.md"
 requires-python = ">=3.14.0"

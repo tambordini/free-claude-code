@@ -18,6 +18,7 @@ async function api(path, options = {}) {
   });
   if (!response.ok)
     throw new Error(`${response.status} ${response.statusText}`);
+
   return response.json();
 }
 
@@ -30,9 +31,7 @@ function sourceLabel(source) {
     explicit_env_file: "FCC_ENV_FILE",
     process: "process env",
   };
-  return Object.prototype.hasOwnProperty.call(labels, source)
-    ? labels[source]
-    : source;
+  return Object.prototype.hasOwnProperty.call(labels, source) ? labels[source] : source;
 }
 
 function providerName(providerId) {
@@ -58,6 +57,7 @@ function providerName(providerId) {
       .join(" ")
   );
 }
+
 
 
 function statusClass(status) {
@@ -87,6 +87,7 @@ function adminUi() {
     showAdvanced: {},
     combos: {},
     validationErrors: {},
+
 
 
     // === Init (auto-called by Alpine) ===
@@ -124,6 +125,7 @@ function adminUi() {
           .forEach((f) => {
             secrets[f.key] = false;
           });
+
         this.showSecrets = secrets;
 
         // Set initial active section
@@ -157,6 +159,7 @@ function adminUi() {
           },
           { deep: true },
         );
+
 
       } catch (e) {
         this.showToast(e.message, "error");
@@ -200,6 +203,7 @@ function adminUi() {
       return this.validationErrors[key] ? "field-error" : "";
     },
 
+
     // === Search (filters NAV_GROUPS by section label) ===
 
     filteredNavGroups(query) {
@@ -212,6 +216,7 @@ function adminUi() {
           return s && s.label.toLowerCase().includes(q);
         }),
       })).filter((g) => g.sections.length > 0);
+
     },
 
     // === Dirty state ===
@@ -277,6 +282,7 @@ function adminUi() {
         this.combos[fieldKey].open = false;
         this.combos[fieldKey].idx = -1;
       }
+
     },
 
     // === Validate / Apply ===
@@ -290,6 +296,7 @@ function adminUi() {
 
     async validateAndShow() {
       this.validationErrors = {};
+
       const result = await this.validate();
       if (result.valid) {
         this.showToast("Config shape is valid", "ok");
@@ -303,12 +310,14 @@ function adminUi() {
             }
           }
         });
+
         this.showToast(result.errors.join("; "), "error");
       }
     },
 
     async apply() {
       this.validationErrors = {};
+
       const result = await api("/admin/api/config/apply", {
         method: "POST",
         body: JSON.stringify({ values: this.changedValues() }),
@@ -384,6 +393,7 @@ function adminUi() {
 
     // === Scroll spy (IntersectionObserver) ===
 
+
     setupScrollSpy() {
       const observer = new IntersectionObserver(
         (entries) => {
@@ -405,6 +415,7 @@ function adminUi() {
 
     hasAdvanced(sectionId) {
       return this.fields.some((f) => f.section === sectionId && f.advanced);
+
     },
 
     // === Notifications ===
