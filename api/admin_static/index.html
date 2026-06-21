@@ -176,15 +176,52 @@
                           <span class="text-[10px] text-[#8b8b95] font-normal" x-text="sourceText(field)"></span>
                         </label>
 
+                        <!-- model combobox -->
+                        <template x-if="field.type === 'text' && field.key.startsWith('MODEL')">
+                          <div class="relative" @click.outside="combos[field.key] = combos[field.key] || {open:false,idx:-1}; combos[field.key].open = false">
+                            <input
+                              :id="'fld-' + field.key"
+                              x-model="fieldValues[field.key]"
+                              :disabled="field.locked"
+                              placeholder="Type to filter models…"
+                              @focus="combos[field.key] = combos[field.key] || {open:true,idx:-1}; combos[field.key].open = true"
+                              @input="combos[field.key] ? (combos[field.key].open = true, combos[field.key].idx = -1) : (combos[field.key] = {open:true,idx:-1})"
+                              @keydown.arrow-down.prevent="comboNav(field.key, 'down')"
+                              @keydown.arrow-up.prevent="comboNav(field.key, 'up')"
+                              @keydown.enter.prevent="comboSelectActive(field.key)"
+                              @keydown.escape="combos[field.key] && (combos[field.key].open = false)"
+                              autocomplete="off"
+                              class="w-full h-10 px-3 pr-9 rounded-lg border border-[#2b2b30] bg-[#121214] text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] focus:ring-1 focus:ring-[#2fb984]/30 transition-all disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
+                            />
+                            <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b635a] pointer-events-none transition-transform" :class="combos[field.key]?.open ? 'rotate-180 text-[#2fb984]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4 4 4-4"/></svg>
+                            <div
+                              x-show="combos[field.key]?.open && filteredModels(field.key).length > 0"
+                              x-cloak
+                              class="absolute top-full left-0 right-0 z-50 mt-1 max-h-56 overflow-y-auto rounded-lg border border-[#2b2b30] bg-[#19191c] shadow-xl shadow-black/40"
+                            >
+                              <template x-for="(m, i) in filteredModels(field.key)" :key="m">
+                                <div
+                                  @click="selectModel(field.key, m)"
+                                  @mouseenter="combos[field.key] = combos[field.key] || {open:true,idx:-1}; combos[field.key].idx = i"
+                                  class="flex items-center gap-1.5 px-3 py-2.5 text-sm cursor-pointer border-b border-[#1f1f23] last:border-b-0 transition-colors"
+                                  :class="i === combos[field.key]?.idx ? 'bg-[#2fb984]/15 text-white' : 'text-[#c5c2bd] hover:bg-white/[0.04]'"
+                                >
+                                  <span class="text-[#2fb984] font-medium shrink-0" x-text="m.split('/')[0] + '/'"></span>
+                                  <span class="truncate" x-text="m.split('/').slice(1).join('/')"></span>
+                                </div>
+                              </template>
+                              <div class="px-3 py-1.5 text-[10px] text-[#6b635a] border-t border-[#1f1f23]" x-text="filteredModels(field.key).length + ' model' + (filteredModels(field.key).length === 1 ? '' : 's')"></div>
+                            </div>
+                          </div>
+                        </template>
+
                         <!-- text / number -->
-                        <template x-if="field.type === 'text' || field.type === 'number'">
+                        <template x-if="(field.type === 'text' && !field.key.startsWith('MODEL')) || field.type === 'number'">
                           <input
                             :type="field.type === 'number' ? 'number' : 'text'"
                             :id="'fld-' + field.key"
                             x-model="fieldValues[field.key]"
                             :disabled="field.locked"
-                            :list="field.key.startsWith('MODEL') ? 'model-options' : ''"
-                            :placeholder="field.key.startsWith('MODEL') ? 'provider/model' : ''"
                             class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-transparent text-sm text-white placeholder-[#8b8b95] outline-none focus:border-[#2fb984] transition-colors disabled:cursor-not-allowed disabled:bg-[#1a1a1d] disabled:text-[#6b635a]"
                           />
                         </template>
@@ -230,28 +267,34 @@
 
                         <!-- tri_boolean -->
                         <template x-if="field.type === 'tri_boolean'">
-                          <select
-                            x-model="fieldValues[field.key]"
-                            :disabled="field.locked"
-                            class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-[#0c0c0d] text-sm text-white outline-none focus:border-[#2fb984] transition-colors appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            <option value="">Inherit</option>
-                            <option value="true">Enabled</option>
-                            <option value="false">Disabled</option>
-                          </select>
+                          <div class="relative">
+                            <select
+                              x-model="fieldValues[field.key]"
+                              :disabled="field.locked"
+                              class="w-full h-10 pl-3 pr-9 rounded-lg border border-[#2b2b30] bg-[#121214] text-sm text-white outline-none focus:border-[#2fb984] focus:ring-1 focus:ring-[#2fb984]/30 transition-all appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              <option value="">Inherit</option>
+                              <option value="true">Enabled</option>
+                              <option value="false">Disabled</option>
+                            </select>
+                            <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b635a] pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4 4 4-4"/></svg>
+                          </div>
                         </template>
 
                         <!-- select -->
                         <template x-if="field.type === 'select'">
-                          <select
-                            x-model="fieldValues[field.key]"
-                            :disabled="field.locked"
-                            class="w-full h-10 px-3 rounded-md border border-[#2b2b30] bg-[#0c0c0d] text-sm text-white outline-none focus:border-[#2fb984] transition-colors appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            <template x-for="opt in field.options" :key="opt">
-                              <option :value="opt" x-text="opt"></option>
-                            </template>
-                          </select>
+                          <div class="relative">
+                            <select
+                              x-model="fieldValues[field.key]"
+                              :disabled="field.locked"
+                              class="w-full h-10 pl-3 pr-9 rounded-lg border border-[#2b2b30] bg-[#121214] text-sm text-white outline-none focus:border-[#2fb984] focus:ring-1 focus:ring-[#2fb984]/30 transition-all appearance-none cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              <template x-for="opt in field.options" :key="opt">
+                                <option :value="opt" x-text="opt"></option>
+                              </template>
+                            </select>
+                            <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6b635a] pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4 4 4-4"/></svg>
+                          </div>
                         </template>
 
                         <!-- textarea -->

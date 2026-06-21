@@ -81,6 +81,7 @@ function adminUi() {
     searchQuery: "",
     loading: true,
     showAdvanced: {},
+    combos: {},
 
     // === Init (auto-called by Alpine) ===
     async init() {
@@ -218,6 +219,38 @@ function adminUi() {
     toggleField(key) {
       this.fieldValues[key] =
         this.fieldValues[key] === "true" ? "false" : "true";
+    },
+
+    // === Model combobox helpers ===
+
+    filteredModels(fieldKey) {
+      const q = (this.fieldValues[fieldKey] || "").toLowerCase();
+      if (!q) return this.modelOptions;
+      return this.modelOptions.filter((m) => m.toLowerCase().includes(q));
+    },
+
+    comboNav(fieldKey, direction) {
+      const c = this.combos[fieldKey] || { idx: -1 };
+      this.combos[fieldKey] = c;
+      const len = this.filteredModels(fieldKey).length;
+      if (direction === "down") c.idx = Math.min(c.idx + 1, len - 1);
+      if (direction === "up") c.idx = Math.max(c.idx - 1, 0);
+    },
+
+    comboSelectActive(fieldKey) {
+      const c = this.combos[fieldKey];
+      if (c && c.idx >= 0) {
+        const models = this.filteredModels(fieldKey);
+        if (models[c.idx]) this.selectModel(fieldKey, models[c.idx]);
+      }
+    },
+
+    selectModel(fieldKey, model) {
+      this.fieldValues[fieldKey] = model;
+      if (this.combos[fieldKey]) {
+        this.combos[fieldKey].open = false;
+        this.combos[fieldKey].idx = -1;
+      }
     },
 
     // === Validate / Apply ===
