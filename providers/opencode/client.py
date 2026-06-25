@@ -6,9 +6,18 @@ from typing import Any
 
 from providers.base import ProviderConfig
 from providers.defaults import OPENCODE_DEFAULT_BASE
+from providers.model_listing import ProviderModelInfo
 from providers.transports.openai_chat import OpenAIChatTransport
 
 from .request import build_request_body
+
+# Models that support vision input.
+_VISION_MODELS: frozenset[str] = frozenset({"mimo-v2.5-free"})
+
+# Non-vision model -> vision fallback model.
+_VISION_FALLBACK: dict[str, str] = {
+    "deepseek-v4-flash-free": "mimo-v2.5-free",
+}
 
 
 class OpenCodeProvider(OpenAIChatTransport):
@@ -28,4 +37,16 @@ class OpenCodeProvider(OpenAIChatTransport):
         return build_request_body(
             request,
             thinking_enabled=self._is_thinking_enabled(request, thinking_enabled),
+        )
+
+    async def list_model_infos(self) -> frozenset[ProviderModelInfo]:
+        """Return model info with vision capability metadata."""
+        model_ids = await self.list_model_ids()
+        return frozenset(
+            ProviderModelInfo(
+                model_id=mid,
+                supports_vision=mid in _VISION_MODELS,
+            )
+            for mid in model_ids
+            if mid.strip()
         )
