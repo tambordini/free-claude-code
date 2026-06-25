@@ -154,7 +154,6 @@ function adminUi() {
           { deep: true },
         );
 
-        await this.refreshLocalStatus();
       } catch (e) {
         this.showToast(e.message, "error");
       } finally {
@@ -337,23 +336,6 @@ function adminUi() {
     },
 
     // === Provider operations ===
-
-    async refreshLocalStatus() {
-      try {
-        const result = await api("/admin/api/providers/local-status");
-        result.providers.forEach((p) => {
-          const card = this.providerStatus.find(
-            (x) => x.provider_id === p.provider_id,
-          );
-          if (card) {
-            card.status = p.status;
-            card.label = p.label;
-          }
-        });
-      } catch (_) {
-        /* non-critical */
-      }
-    },
 
     async testProvider(providerId) {
       try {
