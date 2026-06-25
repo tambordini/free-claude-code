@@ -58,7 +58,6 @@ class TelegramRuntime:
         whisper_model: str = "base",
         whisper_device: str = "cpu",
         hf_token: str = "",
-        nvidia_nim_api_key: str = "",
         messaging_rate_limit: int = 1,
         messaging_rate_window: float = 1.0,
         log_raw_messaging_content: bool = False,
@@ -87,7 +86,6 @@ class TelegramRuntime:
             whisper_model=whisper_model,
             whisper_device=whisper_device,
             hf_token=hf_token,
-            nvidia_nim_api_key=nvidia_nim_api_key,
             log_raw_messaging_content=log_raw_messaging_content,
             log_api_error_tracebacks=log_api_error_tracebacks,
         )
