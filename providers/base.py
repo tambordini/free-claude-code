@@ -137,6 +137,17 @@ class BaseProvider(ABC):
         return model_infos_from_ids(await self.list_model_ids())
 
     @abstractmethod
+    async def send_request(
+        self,
+        request: Any,
+        input_tokens: int = 0,
+        *,
+        request_id: str | None = None,
+        thinking_enabled: bool | None = None,
+    ) -> str:
+        """Send a non-streaming request and return the full response text."""
+
+    @abstractmethod
     async def stream_response(
         self,
         request: Any,

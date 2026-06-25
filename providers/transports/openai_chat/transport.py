@@ -136,6 +136,32 @@ class OpenAIChatTransport(BaseProvider):
             request_id=request_id,
         )
 
+    async def send_request(
+        self,
+        request: Any,
+        input_tokens: int = 0,
+        *,
+        request_id: str | None = None,
+        thinking_enabled: bool | None = None,
+    ) -> str:
+        """Send a non-streaming request and return the full response text."""
+        body = self._build_request_body(request, thinking_enabled=thinking_enabled)
+        try:
+            create_body = self._prepare_create_body(body)
+            response = await self._global_rate_limiter.execute_with_retry(
+                self._client.chat.completions.create, **create_body
+            )
+            return response.choices[0].message.content or ""
+        except Exception as error:
+            retry_body = self._get_retry_request_body(error, body)
+            if retry_body is None:
+                raise
+            create_retry_body = self._prepare_create_body(retry_body)
+            response = await self._global_rate_limiter.execute_with_retry(
+                self._client.chat.completions.create, **create_retry_body
+            )
+            return response.choices[0].message.content or ""
+
     async def stream_response(
         self,
         request: Any,

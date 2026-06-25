@@ -74,6 +74,16 @@ class FakeProvider(BaseProvider):
             return self._model_infos
         return frozenset(ProviderModelInfo(model_id) for model_id in self._model_ids)
 
+    async def send_request(
+        self,
+        request: Any,
+        input_tokens: int = 0,
+        *,
+        request_id: str | None = None,
+        thinking_enabled: bool | None = None,
+    ) -> str:
+        raise NotImplementedError
+
     async def stream_response(
         self,
         request: Any,

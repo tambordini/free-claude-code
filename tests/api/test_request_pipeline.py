@@ -40,6 +40,16 @@ class FakeProvider(BaseProvider):
     async def list_model_ids(self) -> frozenset[str]:
         return frozenset({"test-model"})
 
+    async def send_request(
+        self,
+        request: Any,
+        input_tokens: int = 0,
+        *,
+        request_id: str | None = None,
+        thinking_enabled: bool | None = None,
+    ) -> str:
+        raise NotImplementedError
+
     async def stream_response(
         self,
         request: Any,

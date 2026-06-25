@@ -216,6 +216,19 @@ class AnthropicMessagesTransport(BaseProvider):
             log_raw_sse_events=self._config.log_raw_sse_events,
         )
 
+    async def send_request(
+        self,
+        request: Any,
+        input_tokens: int = 0,
+        *,
+        request_id: str | None = None,
+        thinking_enabled: bool | None = None,
+    ) -> str:
+        """Non-streaming requests are not supported on this transport."""
+        raise NotImplementedError(
+            "send_request is not implemented for AnthropicMessagesTransport"
+        )
+
     async def stream_response(
         self,
         request: Any,
