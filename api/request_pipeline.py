@@ -419,9 +419,7 @@ class ApiRequestPipeline:
 
         fallback_model = _VISION_FALLBACK.get(provider_model)
         if fallback_model is None:
-            logger.debug(
-                "No vision fallback configured for model={}", provider_model
-            )
+            logger.debug("No vision fallback configured for model={}", provider_model)
             return routed
 
         # Collect image blocks from user messages.
@@ -474,7 +472,9 @@ class ApiRequestPipeline:
         rewritten_request = _replace_images_with_text(routed.request, analysis)
         logger.info(
             "Vision fallback: {} -> {} ({} chars analysis)",
-            provider_model, fallback_model, len(analysis),
+            provider_model,
+            fallback_model,
+            len(analysis),
         )
         return RoutedMessagesRequest(
             request=rewritten_request,

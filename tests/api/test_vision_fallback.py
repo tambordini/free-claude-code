@@ -22,18 +22,25 @@ def _make_msg(content: list) -> MessagesRequest:
 
 def test_has_image_content_true() -> None:
     """Request with an image block returns True."""
-    req = _make_msg([
-        {"type": "text", "text": "hello"},
-        {"type": "image", "source": {"type": "base64", "media_type": "image/png", "data": "abc"}},
-    ])
+    req = _make_msg(
+        [
+            {"type": "text", "text": "hello"},
+            {
+                "type": "image",
+                "source": {"type": "base64", "media_type": "image/png", "data": "abc"},
+            },
+        ]
+    )
     assert _has_image_content(req) is True
 
 
 def test_has_image_content_false() -> None:
     """Request with only text returns False."""
-    req = _make_msg([
-        {"type": "text", "text": "hello"},
-    ])
+    req = _make_msg(
+        [
+            {"type": "text", "text": "hello"},
+        ]
+    )
     assert _has_image_content(req) is False
 
 
@@ -45,10 +52,15 @@ def test_has_image_content_empty() -> None:
 
 def test_replace_images_with_text() -> None:
     """Image block is replaced with text block containing analysis."""
-    req = _make_msg([
-        {"type": "text", "text": "what is this?"},
-        {"type": "image", "source": {"type": "base64", "media_type": "image/png", "data": "abc"}},
-    ])
+    req = _make_msg(
+        [
+            {"type": "text", "text": "what is this?"},
+            {
+                "type": "image",
+                "source": {"type": "base64", "media_type": "image/png", "data": "abc"},
+            },
+        ]
+    )
     analysis = "A cat sitting on a keyboard"
     rewritten = _replace_images_with_text(req, analysis)
 
@@ -62,10 +74,18 @@ def test_replace_images_with_text() -> None:
 
 def test_replace_images_with_text_multiple_images() -> None:
     """Multiple image blocks are each replaced with text."""
-    req = _make_msg([
-        {"type": "image", "source": {"type": "url", "url": "http://example.com/a.png"}},
-        {"type": "image", "source": {"type": "url", "url": "http://example.com/b.png"}},
-    ])
+    req = _make_msg(
+        [
+            {
+                "type": "image",
+                "source": {"type": "url", "url": "http://example.com/a.png"},
+            },
+            {
+                "type": "image",
+                "source": {"type": "url", "url": "http://example.com/b.png"},
+            },
+        ]
+    )
     rewritten = _replace_images_with_text(req, "two images")
     text_blocks = [b for b in rewritten.messages[0].content if b.type == "text"]
     assert len(text_blocks) == 2
@@ -74,9 +94,14 @@ def test_replace_images_with_text_multiple_images() -> None:
 
 def test_replace_images_with_text_preserves_original() -> None:
     """Original request object is not mutated."""
-    req = _make_msg([
-        {"type": "image", "source": {"type": "url", "url": "http://example.com/img.png"}},
-    ])
+    req = _make_msg(
+        [
+            {
+                "type": "image",
+                "source": {"type": "url", "url": "http://example.com/img.png"},
+            },
+        ]
+    )
     _replace_images_with_text(req, "analysis")
     assert len(req.messages[0].content) == 1
     assert req.messages[0].content[0].type == "image"
@@ -119,10 +144,18 @@ async def test_vision_fallback_model_already_vision() -> None:
     vision_model = next(iter(_VISION_MODELS))
     request = MessagesRequest(
         model=vision_model,
-        messages=[Message(role="user", content=[
-            {"type": "text", "text": "what is this?"},
-            {"type": "image", "source": {"type": "url", "url": "http://example.com/img.png"}},
-        ])],
+        messages=[
+            Message(
+                role="user",
+                content=[
+                    {"type": "text", "text": "what is this?"},
+                    {
+                        "type": "image",
+                        "source": {"type": "url", "url": "http://example.com/img.png"},
+                    },
+                ],
+            )
+        ],
     )
     routed = RoutedMessagesRequest(
         request=request,
@@ -151,10 +184,18 @@ async def test_vision_fallback_sends_to_vision_model() -> None:
 
     request = MessagesRequest(
         model="opencode/deepseek-v4-flash-free",
-        messages=[Message(role="user", content=[
-            {"type": "text", "text": "what's in this image?"},
-            {"type": "image", "source": {"type": "url", "url": "http://example.com/img.png"}},
-        ])],
+        messages=[
+            Message(
+                role="user",
+                content=[
+                    {"type": "text", "text": "what's in this image?"},
+                    {
+                        "type": "image",
+                        "source": {"type": "url", "url": "http://example.com/img.png"},
+                    },
+                ],
+            )
+        ],
     )
     routed = RoutedMessagesRequest(
         request=request,
