@@ -48,7 +48,7 @@ async def create_message(
     _auth=Depends(require_api_key),
 ):
     """Create a message (always streaming)."""
-    return pipeline.create_message(request_data)
+    return await pipeline.create_message(request_data)
 
 
 @router.api_route("/v1/messages", methods=["HEAD", "OPTIONS"])

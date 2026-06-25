@@ -98,7 +98,7 @@ async def test_pipeline_provider_execution_passes_routed_request_and_stream_meta
         messages=[Message(role="user", content="hi")],
     )
 
-    response = pipeline.create_message(request)
+    response = await pipeline.create_message(request)
     assert isinstance(response, StreamingResponse)
 
     body = await _streaming_body_text(response)
@@ -122,7 +122,7 @@ async def test_pipeline_forces_no_thinking_for_safety_classifier_messages():
     )
 
     with patch("api.request_pipeline.trace_event") as trace_mock:
-        response = pipeline.create_message(request)
+        response = await pipeline.create_message(request)
         assert isinstance(response, StreamingResponse)
         await _streaming_body_text(response)
 
@@ -163,7 +163,7 @@ async def test_pipeline_preserves_thinking_for_non_classifier_messages():
     )
 
     with patch("api.request_pipeline.trace_event") as trace_mock:
-        response = pipeline.create_message(request)
+        response = await pipeline.create_message(request)
         assert isinstance(response, StreamingResponse)
         await _streaming_body_text(response)
 
@@ -187,7 +187,7 @@ async def test_pipeline_keeps_existing_no_thinking_for_classifier_messages():
     )
 
     with patch("api.request_pipeline.trace_event") as trace_mock:
-        response = pipeline.create_message(request)
+        response = await pipeline.create_message(request)
         assert isinstance(response, StreamingResponse)
         await _streaming_body_text(response)
 
@@ -206,7 +206,8 @@ async def test_pipeline_keeps_existing_no_thinking_for_classifier_messages():
     ]
 
 
-def test_pipeline_message_optimization_intercepts_before_provider_execution():
+@pytest.mark.asyncio
+async def test_pipeline_message_optimization_intercepts_before_provider_execution():
     provider_getter = MagicMock()
     pipeline = ApiRequestPipeline(Settings(), provider_getter=provider_getter)
     request = MessagesRequest(
@@ -217,7 +218,7 @@ def test_pipeline_message_optimization_intercepts_before_provider_execution():
     optimized = object()
 
     with patch("api.request_pipeline.try_optimizations", return_value=optimized):
-        assert pipeline.create_message(request) is optimized
+        assert await pipeline.create_message(request) is optimized
 
     provider_getter.assert_not_called()
 

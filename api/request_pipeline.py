@@ -46,6 +46,60 @@ _OPENAI_CHAT_UPSTREAM_IDS = frozenset(
 )
 
 
+# ── Vision fallback helpers ────────────────────────────────────────────────
+
+# Hardcoded set of model ids that natively support vision input.
+_VISION_MODELS: frozenset[str] = frozenset({"mimo-v2.5-free"})
+
+# Hardcoded fallback mapping: non-vision model -> vision-capable fallback model.
+_VISION_FALLBACK: dict[str, str] = {
+    "deepseek-v4-flash-free": "mimo-v2.5-free",
+}
+
+
+def _has_image_content(request: Any) -> bool:
+    """Return True if any message in the request has image content blocks."""
+    for msg in getattr(request, "messages", []):
+        content = getattr(msg, "content", None)
+        if not isinstance(content, list):
+            continue
+        for block in content:
+            block_type = getattr(block, "type", None) or (
+                isinstance(block, dict) and block.get("type")
+            )
+            if block_type == "image":
+                return True
+    return False
+
+
+def _replace_images_with_text(request: Any, analysis: str) -> Any:
+    """Return a deep copy of request with all image blocks replaced by text.
+
+    Each image block replaced by ``ContentBlockText("[Image: <analysis>]")``.
+    Non-image blocks are preserved as-is.
+    """
+    from .models.anthropic import ContentBlockText
+
+    rewritten = request.model_copy(deep=True)
+    for msg in getattr(rewritten, "messages", []):
+        content = getattr(msg, "content", None)
+        if not isinstance(content, list):
+            continue
+        new_content: list[Any] = []
+        for block in content:
+            block_type = getattr(block, "type", None) or (
+                isinstance(block, dict) and block.get("type")
+            )
+            if block_type == "image":
+                new_content.append(
+                    ContentBlockText(type="text", text=f"[Image: {analysis}]")
+                )
+            else:
+                new_content.append(block)
+        msg.content = new_content
+    return rewritten
+
+
 def anthropic_sse_streaming_response(body: AsyncIterator[str]) -> StreamingResponse:
     """Return a streaming response for Anthropic-style SSE streams."""
     return StreamingResponse(
@@ -123,7 +177,7 @@ class ApiRequestPipeline:
             self._intercept_local_optimization,
         )
 
-    def create_message(self, request_data: MessagesRequest) -> object:
+    async def create_message(self, request_data: MessagesRequest) -> object:
         """Create an Anthropic-compatible message response."""
         try:
             _require_non_empty_messages(request_data.messages)
@@ -134,6 +188,9 @@ class ApiRequestPipeline:
             intercepted = self._run_message_intercepts(routed)
             if intercepted is not None:
                 return intercepted
+
+            # Vision fallback: rewrite images -> text if needed.
+            routed = await self._apply_vision_fallback(routed)
 
             logger.debug("No optimization matched, routing to provider")
             return anthropic_sse_streaming_response(
@@ -345,6 +402,84 @@ class ApiRequestPipeline:
             model=routed.request.model,
         )
         return optimized
+
+    async def _apply_vision_fallback(
+        self, routed: RoutedMessagesRequest
+    ) -> RoutedMessagesRequest:
+        """If the request has images but the model doesn't support vision,
+        relay to the hardcoded vision fallback model, inject analysis, and
+        return the rewritten request. Otherwise return the original unchanged."""
+        if not _has_image_content(routed.request):
+            return routed
+
+        provider_model = routed.resolved.provider_model
+
+        if provider_model in _VISION_MODELS:
+            return routed
+
+        fallback_model = _VISION_FALLBACK.get(provider_model)
+        if fallback_model is None:
+            logger.debug(
+                "No vision fallback configured for model={}", provider_model
+            )
+            return routed
+
+        # Collect image blocks from user messages.
+        vision_content: list[Any] = []
+        for msg in getattr(routed.request, "messages", []):
+            content = getattr(msg, "content", None)
+            if not isinstance(content, list):
+                continue
+            for block in content:
+                block_type = getattr(block, "type", None) or (
+                    isinstance(block, dict) and block.get("type")
+                )
+                if block_type == "image":
+                    vision_content.append(block)
+
+        if not vision_content:
+            return routed
+
+        vision_system = (
+            "Describe the image(s) in detail, including objects, "
+            "text, people, actions, and context."
+        )
+
+        from .models.anthropic import Message, MessagesRequest
+
+        vision_request = MessagesRequest(
+            model=fallback_model,
+            system=[{"type": "text", "text": vision_system}],
+            messages=[Message(role="user", content=vision_content)],
+            stream=False,
+        )
+
+        fallback_provider = self._provider_getter(routed.resolved.provider_id)
+
+        try:
+            analysis = await fallback_provider.send_request(
+                vision_request,
+                thinking_enabled=False,
+            )
+        except Exception as exc:
+            logger.warning(
+                "Vision fallback failed for model={}: {}", provider_model, exc
+            )
+            return routed
+
+        if not analysis:
+            logger.warning("Vision fallback returned empty analysis")
+            return routed
+
+        rewritten_request = _replace_images_with_text(routed.request, analysis)
+        logger.info(
+            "Vision fallback: {} -> {} ({} chars analysis)",
+            provider_model, fallback_model, len(analysis),
+        )
+        return RoutedMessagesRequest(
+            request=rewritten_request,
+            resolved=routed.resolved,
+        )
 
     def _provider_stream(
         self,
