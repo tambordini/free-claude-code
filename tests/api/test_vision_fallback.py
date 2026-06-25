@@ -92,6 +92,15 @@ def test_replace_images_with_text_multiple_images() -> None:
     assert all("two images" in b.text for b in text_blocks)
 
 
+def test_vision_fallback_maps_opencode_go() -> None:
+    """opencode_go provider model deepseek-v4-flash maps to mimo-v2.5."""
+    from api.request_pipeline import _VISION_FALLBACK, _VISION_MODELS
+
+    assert "deepseek-v4-flash" in _VISION_FALLBACK
+    assert _VISION_FALLBACK["deepseek-v4-flash"] == "mimo-v2.5"
+    assert "mimo-v2.5" in _VISION_MODELS
+
+
 def test_replace_images_with_text_preserves_original() -> None:
     """Original request object is not mutated."""
     req = _make_msg(

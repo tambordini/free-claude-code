@@ -12,11 +12,12 @@ from providers.transports.openai_chat import OpenAIChatTransport
 from .request import build_request_body
 
 # Models that support vision input.
-_VISION_MODELS: frozenset[str] = frozenset({"mimo-v2.5-free"})
+_VISION_MODELS: frozenset[str] = frozenset({"mimo-v2.5-free", "mimo-v2.5"})
 
 # Non-vision model -> vision fallback model.
 _VISION_FALLBACK: dict[str, str] = {
     "deepseek-v4-flash-free": "mimo-v2.5-free",
+    "deepseek-v4-flash": "mimo-v2.5",
 }
 
 

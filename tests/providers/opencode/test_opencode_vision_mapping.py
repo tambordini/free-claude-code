@@ -1,13 +1,12 @@
 """Tests for OpenCode vision model mapping."""
 
 
-
-
 def test_vision_models_defined() -> None:
     from providers.opencode.client import _VISION_MODELS
 
     assert len(_VISION_MODELS) > 0
     assert "mimo-v2.5-free" in _VISION_MODELS
+    assert "mimo-v2.5" in _VISION_MODELS
 
 
 def test_vision_fallback_defined() -> None:

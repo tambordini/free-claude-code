@@ -1,6 +1,5 @@
 """Tests for non-streaming send_request on providers."""
 
-
 import pytest
 
 from providers.base import BaseProvider, ProviderConfig

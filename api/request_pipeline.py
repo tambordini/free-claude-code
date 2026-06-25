@@ -49,11 +49,12 @@ _OPENAI_CHAT_UPSTREAM_IDS = frozenset(
 # ── Vision fallback helpers ────────────────────────────────────────────────
 
 # Hardcoded set of model ids that natively support vision input.
-_VISION_MODELS: frozenset[str] = frozenset({"mimo-v2.5-free"})
+_VISION_MODELS: frozenset[str] = frozenset({"mimo-v2.5-free", "mimo-v2.5"})
 
 # Hardcoded fallback mapping: non-vision model -> vision-capable fallback model.
 _VISION_FALLBACK: dict[str, str] = {
     "deepseek-v4-flash-free": "mimo-v2.5-free",
+    "deepseek-v4-flash": "mimo-v2.5",
 }
 
 
