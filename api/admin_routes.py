@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
-import httpx
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
@@ -29,11 +28,6 @@ from .admin_urls import local_admin_url
 router = APIRouter()
 
 STATIC_DIR = Path(__file__).resolve().parent / "admin_static"
-LOCAL_PROVIDER_PATHS = {
-    "lmstudio": "/models",
-    "llamacpp": "/models",
-    "ollama": "/api/tags",
-}
 
 
 class AdminConfigPayload(BaseModel):
@@ -163,18 +157,6 @@ async def admin_status(request: Request):
     }
 
 
-@router.get("/admin/api/providers/local-status")
-async def local_provider_status(request: Request):
-    require_loopback_admin(request)
-    config = load_config_response()
-    values = {field["key"]: field["value"] for field in config["fields"]}
-    checks = []
-    for provider_id, path in LOCAL_PROVIDER_PATHS.items():
-        base_url = _local_provider_url(provider_id, values)
-        checks.append(await _check_local_provider(provider_id, base_url, path))
-    return {"providers": checks}
-
-
 @router.post("/admin/api/providers/{provider_id}/test")
 async def test_provider(provider_id: str, request: Request):
     require_loopback_admin(request)
@@ -247,47 +229,3 @@ def _next_admin_url() -> str:
         port=int(fields.get("PORT") or 8082),
     )
     return local_admin_url(settings)
-
-
-def _local_provider_url(provider_id: str, values: dict[str, str]) -> str:
-    if provider_id == "lmstudio":
-        return values.get("LM_STUDIO_BASE_URL", "")
-    if provider_id == "llamacpp":
-        return values.get("LLAMACPP_BASE_URL", "")
-    if provider_id == "ollama":
-        return values.get("OLLAMA_BASE_URL", "")
-    return ""
-
-
-async def _check_local_provider(
-    provider_id: str, base_url: str, path: str
-) -> dict[str, Any]:
-    clean_url = base_url.strip().rstrip("/")
-    if not clean_url:
-        return {
-            "provider_id": provider_id,
-            "status": "missing_url",
-            "label": "Missing URL",
-            "base_url": base_url,
-        }
-
-    url = f"{clean_url}{path}"
-    try:
-        async with httpx.AsyncClient(timeout=1.5) as client:
-            response = await client.get(url)
-        ok = 200 <= response.status_code < 300
-        return {
-            "provider_id": provider_id,
-            "status": "reachable" if ok else "offline",
-            "label": "Reachable" if ok else "Offline",
-            "base_url": base_url,
-            "status_code": response.status_code,
-        }
-    except Exception as exc:
-        return {
-            "provider_id": provider_id,
-            "status": "offline",
-            "label": "Offline",
-            "base_url": base_url,
-            "error_type": type(exc).__name__,
-        }

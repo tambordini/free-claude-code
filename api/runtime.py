@@ -194,7 +194,6 @@ class AppRuntime:
                     whisper_model=self.settings.whisper_model,
                     whisper_device=self.settings.whisper_device,
                     hf_token=self.settings.hf_token,
-                    nvidia_nim_api_key=self.settings.nvidia_nim_api_key,
                     messaging_rate_limit=self.settings.messaging_rate_limit,
                     messaging_rate_window=self.settings.messaging_rate_window,
                     log_raw_messaging_content=self.settings.log_raw_messaging_content,

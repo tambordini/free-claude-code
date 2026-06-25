@@ -75,7 +75,7 @@ def openai_chat_upstream_server_tool_error(
         return (
             f"tool_choice forces Anthropic server tool {forced!r}, but local web server tools are "
             "disabled (ENABLE_WEB_SERVER_TOOLS=false). Enable them or use a native Anthropic "
-            "Messages transport (e.g. open_router, ollama, lmstudio)."
+            "Messages transport (e.g. opencode, opencode_go)."
         )
     if not forced and has_listed_anthropic_server_tools(request):
         return (
