@@ -236,6 +236,15 @@ class ProviderRegistry:
             return None
         return info.supports_thinking
 
+    def cached_model_supports_vision(
+        self, provider_id: str, model_id: str
+    ) -> bool | None:
+        """Return cached vision support when a provider exposes it."""
+        info = self._model_infos_by_provider.get(provider_id, {}).get(model_id)
+        if info is None:
+            return None
+        return info.supports_vision
+
     def cached_prefixed_model_refs(self) -> tuple[str, ...]:
         """Return cached provider models in user-selectable ``provider/model`` form."""
         return tuple(info.model_id for info in self.cached_prefixed_model_infos())

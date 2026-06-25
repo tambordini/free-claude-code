@@ -145,3 +145,21 @@ async def test_provider_registry_cleanup_exceptiongroup_on_multiple_failures() -
         await reg.cleanup()
     assert len(exc_info.value.exceptions) == 2
     assert reg._providers == {}
+
+
+def test_cached_model_supports_vision_returns_none_for_missing() -> None:
+    registry = ProviderRegistry()
+    from providers.model_listing import ProviderModelInfo
+
+    registry.cache_model_infos(
+        "test_prov",
+        [
+            ProviderModelInfo(model_id="model-a"),
+            ProviderModelInfo(model_id="model-b", supports_vision=True),
+        ],
+    )
+    assert registry.cached_model_supports_vision("test_prov", "model-a") is None
+    assert registry.cached_model_supports_vision("test_prov", "model-b") is True
+    # Unknown model / provider returns None
+    assert registry.cached_model_supports_vision("test_prov", "model-x") is None
+    assert registry.cached_model_supports_vision("unknown", "model-a") is None
