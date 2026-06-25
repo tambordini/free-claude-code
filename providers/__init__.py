@@ -1,8 +1,7 @@
 """Providers package - implement your own provider by extending BaseProvider.
 
-Concrete adapters (e.g. ``NvidiaNimProvider``) live in subpackages; import them
-from ``providers.nvidia_nim`` etc. to avoid loading every adapter when the
-``providers`` package is imported.
+Concrete adapters live in subpackages (``providers.opencode`` etc.) and are
+registered via :data:`config.provider_catalog.PROVIDER_CATALOG`.
 """
 
 from .base import BaseProvider, ProviderConfig

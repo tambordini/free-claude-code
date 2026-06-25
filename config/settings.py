@@ -12,7 +12,6 @@ from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .constants import HTTP_CONNECT_TIMEOUT_DEFAULT
-from .nim import NimSettings
 from .paths import default_claude_workspace_path, managed_env_path
 from .provider_ids import SUPPORTED_PROVIDER_IDS
 
@@ -77,42 +76,9 @@ def _env_file_override(model_config: Mapping[str, Any], key: str) -> str | None:
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
-    # ==================== OpenRouter Config ====================
-    open_router_api_key: str = Field(default="", validation_alias="OPENROUTER_API_KEY")
-
-    # ==================== Mistral La Plateforme ====================
-    mistral_api_key: str = Field(default="", validation_alias="MISTRAL_API_KEY")
-
-    # ==================== Mistral Codestral (codestral.mistral.ai) ====================
-    codestral_api_key: str = Field(default="", validation_alias="CODESTRAL_API_KEY")
-
-    # ==================== DeepSeek Config ====================
-    deepseek_api_key: str = Field(default="", validation_alias="DEEPSEEK_API_KEY")
-
-    # ==================== Kimi Config ====================
-    kimi_api_key: str = Field(default="", validation_alias="KIMI_API_KEY")
-
-    # ==================== Wafer Config ====================
-    wafer_api_key: str = Field(default="", validation_alias="WAFER_API_KEY")
-
     # ==================== OpenCode Zen / OpenCode Go ====================
     # Same key from opencode.ai/auth; zen uses prefix ``opencode/``, Go uses ``opencode_go/``.
     opencode_api_key: str = Field(default="", validation_alias="OPENCODE_API_KEY")
-
-    # ==================== Z.ai Config ====================
-    zai_api_key: str = Field(default="", validation_alias="ZAI_API_KEY")
-
-    # ==================== Fireworks AI Config ====================
-    fireworks_api_key: str = Field(default="", validation_alias="FIREWORKS_API_KEY")
-
-    # ==================== Google Gemini (Google AI Studio) ====================
-    gemini_api_key: str = Field(default="", validation_alias="GEMINI_API_KEY")
-
-    # ==================== Groq (OpenAI-compatible) ====================
-    groq_api_key: str = Field(default="", validation_alias="GROQ_API_KEY")
-
-    # ==================== Cerebras Inference (OpenAI-compatible) ====================
-    cerebras_api_key: str = Field(default="", validation_alias="CEREBRAS_API_KEY")
 
     # ==================== Messaging Platform Selection ====================
     # Valid: "telegram" | "discord" | "none"
@@ -126,31 +92,10 @@ class Settings(BaseSettings):
         default=1.0, validation_alias="MESSAGING_RATE_WINDOW"
     )
 
-    # ==================== NVIDIA NIM Config ====================
-    nvidia_nim_api_key: str = ""
-
-    # ==================== LM Studio Config ====================
-    lm_studio_base_url: str = Field(
-        default="http://localhost:1234/v1",
-        validation_alias="LM_STUDIO_BASE_URL",
-    )
-
-    # ==================== Llama.cpp Config ====================
-    llamacpp_base_url: str = Field(
-        default="http://localhost:8080/v1",
-        validation_alias="LLAMACPP_BASE_URL",
-    )
-
-    # ==================== Ollama Config ====================
-    ollama_base_url: str = Field(
-        default="http://localhost:11434",
-        validation_alias="OLLAMA_BASE_URL",
-    )
-
     # ==================== Model ====================
     # All Claude model requests are mapped to this single model (fallback)
     # Format: provider_type/model/name
-    model: str = "nvidia_nim/nvidia/nemotron-3-super-120b-a12b"
+    model: str = "opencode/deepseek-v4-flash-free"
 
     # Per-model overrides (optional, falls back to MODEL)
     # Each can use a different provider
@@ -159,21 +104,8 @@ class Settings(BaseSettings):
     model_haiku: str | None = Field(default=None, validation_alias="MODEL_HAIKU")
 
     # ==================== Per-Provider Proxy ====================
-    nvidia_nim_proxy: str = Field(default="", validation_alias="NVIDIA_NIM_PROXY")
-    open_router_proxy: str = Field(default="", validation_alias="OPENROUTER_PROXY")
-    mistral_proxy: str = Field(default="", validation_alias="MISTRAL_PROXY")
-    codestral_proxy: str = Field(default="", validation_alias="CODESTRAL_PROXY")
-    lmstudio_proxy: str = Field(default="", validation_alias="LMSTUDIO_PROXY")
-    llamacpp_proxy: str = Field(default="", validation_alias="LLAMACPP_PROXY")
-    kimi_proxy: str = Field(default="", validation_alias="KIMI_PROXY")
-    wafer_proxy: str = Field(default="", validation_alias="WAFER_PROXY")
     opencode_proxy: str = Field(default="", validation_alias="OPENCODE_PROXY")
     opencode_go_proxy: str = Field(default="", validation_alias="OPENCODE_GO_PROXY")
-    zai_proxy: str = Field(default="", validation_alias="ZAI_PROXY")
-    fireworks_proxy: str = Field(default="", validation_alias="FIREWORKS_PROXY")
-    gemini_proxy: str = Field(default="", validation_alias="GEMINI_PROXY")
-    groq_proxy: str = Field(default="", validation_alias="GROQ_PROXY")
-    cerebras_proxy: str = Field(default="", validation_alias="CEREBRAS_PROXY")
 
     # ==================== Provider Rate Limiting ====================
     provider_rate_limit: int = Field(default=40, validation_alias="PROVIDER_RATE_LIMIT")
@@ -262,22 +194,12 @@ class Settings(BaseSettings):
         default=False, validation_alias="DEBUG_SUBAGENT_STACK"
     )
 
-    # ==================== NIM Settings ====================
-    nim: NimSettings = Field(default_factory=NimSettings)
-
     # ==================== Voice Note Transcription ====================
     voice_note_enabled: bool = Field(
         default=True, validation_alias="VOICE_NOTE_ENABLED"
     )
-    # Device: "cpu" | "cuda" | "nvidia_nim"
-    # - "cpu"/"cuda": local Whisper (requires voice_local extra: uv sync --extra voice_local)
-    # - "nvidia_nim": NVIDIA NIM Whisper API (requires voice extra: uv sync --extra voice)
-    whisper_device: str = Field(default="cpu", validation_alias="WHISPER_DEVICE")
-    # Whisper model ID or short name (for local Whisper) or NVIDIA NIM model (for nvidia_nim)
-    # Local Whisper: "tiny", "base", "small", "medium", "large-v2", "large-v3", "large-v3-turbo"
-    # NVIDIA NIM: "nvidia/parakeet-ctc-1.1b-asr", "openai/whisper-large-v3", etc.
     whisper_model: str = Field(default="base", validation_alias="WHISPER_MODEL")
-    # Hugging Face token for faster model downloads (optional, for local Whisper)
+    whisper_device: str = Field(default="cpu", validation_alias="WHISPER_DEVICE")
     hf_token: str = Field(default="", validation_alias="HF_TOKEN")
 
     # ==================== Bot Wrapper Config ====================
@@ -351,10 +273,8 @@ class Settings(BaseSettings):
     @field_validator("whisper_device")
     @classmethod
     def validate_whisper_device(cls, v: str) -> str:
-        if v not in ("cpu", "cuda", "nvidia_nim"):
-            raise ValueError(
-                f"whisper_device must be 'cpu', 'cuda', or 'nvidia_nim', got {v!r}"
-            )
+        if v not in ("cpu", "cuda"):
+            raise ValueError(f"whisper_device must be 'cpu' or 'cuda', got {v!r}")
         return v
 
     @field_validator("messaging_platform")
@@ -393,16 +313,6 @@ class Settings(BaseSettings):
                 )
         return ",".join(schemes)
 
-    @field_validator("ollama_base_url")
-    @classmethod
-    def validate_ollama_base_url(cls, v: str) -> str:
-        if v.rstrip("/").endswith("/v1"):
-            raise ValueError(
-                "OLLAMA_BASE_URL must be the Ollama root URL for native Anthropic "
-                "messages, e.g. http://localhost:11434 (without /v1)."
-            )
-        return v
-
     @field_validator("model", "model_opus", "model_sonnet", "model_haiku")
     @classmethod
     def validate_model_format(cls, v: str | None) -> str | None:
@@ -419,19 +329,6 @@ class Settings(BaseSettings):
             supported = ", ".join(f"'{p}'" for p in SUPPORTED_PROVIDER_IDS)
             raise ValueError(f"Invalid provider: '{provider}'. Supported: {supported}")
         return v
-
-    @model_validator(mode="after")
-    def check_nvidia_nim_api_key(self) -> Settings:
-        if (
-            self.voice_note_enabled
-            and self.whisper_device == "nvidia_nim"
-            and not self.nvidia_nim_api_key.strip()
-        ):
-            raise ValueError(
-                "NVIDIA_NIM_API_KEY is required when WHISPER_DEVICE is 'nvidia_nim'. "
-                "Set it in your .env file."
-            )
-        return self
 
     @model_validator(mode="after")
     def prefer_dotenv_anthropic_auth_token(self) -> Settings:
