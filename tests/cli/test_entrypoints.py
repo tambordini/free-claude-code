@@ -22,7 +22,7 @@ def _launcher_settings(
         host="0.0.0.0",
         port=port,
         anthropic_auth_token=token,
-        model="nvidia_nim/test-model",
+        model="opencode/test-model",
     )
 
 
@@ -82,11 +82,11 @@ def test_init_migrates_home_checkout_env_before_template(tmp_path: Path) -> None
     """init() preserves users who kept config in ~/free-claude-code/.env."""
     legacy_env = tmp_path / "free-claude-code" / ".env"
     legacy_env.parent.mkdir(parents=True)
-    legacy_env.write_text("MODEL=deepseek/deepseek-chat\n", encoding="utf-8")
+    legacy_env.write_text("MODEL=opencode/deepseek-chat\n", encoding="utf-8")
 
     output, env_file = _run_init(tmp_path)
 
-    assert env_file.read_text("utf-8") == "MODEL=deepseek/deepseek-chat\n"
+    assert env_file.read_text("utf-8") == "MODEL=opencode/deepseek-chat\n"
     assert f"Config migrated from {legacy_env}" in output
 
 
@@ -94,11 +94,11 @@ def test_init_migrates_legacy_xdg_env_before_template(tmp_path: Path) -> None:
     """init() preserves users who kept config in ~/.config/free-claude-code/.env."""
     legacy_env = tmp_path / ".config" / "free-claude-code" / ".env"
     legacy_env.parent.mkdir(parents=True)
-    legacy_env.write_text("MODEL=open_router/free-model\n", encoding="utf-8")
+    legacy_env.write_text("MODEL=opencode_go/free-model\n", encoding="utf-8")
 
     output, env_file = _run_init(tmp_path)
 
-    assert env_file.read_text("utf-8") == "MODEL=open_router/free-model\n"
+    assert env_file.read_text("utf-8") == "MODEL=opencode_go/free-model\n"
     assert f"Config migrated from {legacy_env}" in output
 
 
@@ -110,16 +110,16 @@ def test_legacy_env_migration_does_not_overwrite_managed_env(
 
     managed_env = tmp_path / ".fcc" / ".env"
     managed_env.parent.mkdir(parents=True)
-    managed_env.write_text("MODEL=nvidia_nim/current\n", encoding="utf-8")
+    managed_env.write_text("MODEL=opencode/current\n", encoding="utf-8")
     legacy_env = tmp_path / "free-claude-code" / ".env"
     legacy_env.parent.mkdir(parents=True)
-    legacy_env.write_text("MODEL=deepseek/legacy\n", encoding="utf-8")
+    legacy_env.write_text("MODEL=opencode/legacy\n", encoding="utf-8")
 
     with patch("pathlib.Path.home", return_value=tmp_path):
         migrated_from = _migrate_legacy_env_if_missing()
 
     assert migrated_from is None
-    assert managed_env.read_text("utf-8") == "MODEL=nvidia_nim/current\n"
+    assert managed_env.read_text("utf-8") == "MODEL=opencode/current\n"
 
 
 def test_env_template_loader_uses_root_template_in_source_checkout() -> None:
@@ -267,7 +267,7 @@ def test_serve_migrates_legacy_env_before_loading_settings(tmp_path: Path) -> No
 
     legacy_env = tmp_path / "free-claude-code" / ".env"
     legacy_env.parent.mkdir(parents=True)
-    legacy_env.write_text("MODEL=deepseek/deepseek-chat\n", encoding="utf-8")
+    legacy_env.write_text("MODEL=opencode/deepseek-chat\n", encoding="utf-8")
     settings = _launcher_settings()
     get_settings = MagicMock(return_value=settings)
     get_settings.cache_clear = MagicMock()
@@ -281,7 +281,7 @@ def test_serve_migrates_legacy_env_before_loading_settings(tmp_path: Path) -> No
         entrypoints.serve()
 
     assert (tmp_path / ".fcc" / ".env").read_text("utf-8") == (
-        "MODEL=deepseek/deepseek-chat\n"
+        "MODEL=opencode/deepseek-chat\n"
     )
     get_settings.assert_called_once_with()
 
@@ -403,11 +403,11 @@ def test_launch_codex_passes_responses_config_and_child_env(
             {
                 "data": [
                     {
-                        "id": "anthropic/nvidia_nim/provider-model",
+                        "id": "anthropic/opencode/provider-model",
                         "display_name": "NVIDIA model",
                     },
                     {
-                        "id": ("claude-3-freecc-no-thinking/nvidia_nim/provider-model"),
+                        "id": ("claude-3-freecc-no-thinking/opencode/provider-model"),
                         "display_name": "NVIDIA model (no thinking)",
                     },
                     {
@@ -450,9 +450,7 @@ def test_launch_codex_passes_responses_config_and_child_env(
     headers = {key.lower(): value for key, value in request.header_items()}
     assert headers["x-api-key"] == "proxy-token"
     catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
-    assert [model["slug"] for model in catalog["models"]] == [
-        "nvidia_nim/provider-model"
-    ]
+    assert [model["slug"] for model in catalog["models"]] == ["opencode/provider-model"]
     child_env = popen.call_args.kwargs["env"]
     assert child_env["FCC_CODEX_API_KEY"] == "proxy-token"
     assert child_env["CODEX_HOME"] == "keep-home"

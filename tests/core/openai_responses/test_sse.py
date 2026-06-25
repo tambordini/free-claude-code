@@ -17,7 +17,7 @@ async def test_anthropic_text_stream_converts_to_responses_sse() -> None:
     text = await _collect_sse(
         _ADAPTER.iter_sse_from_anthropic(
             _aiter(_anthropic_text_stream("Hello Codex")),
-            {"model": "nvidia_nim/test-model", "stream": True},
+            {"model": "opencode_go/test-model", "stream": True},
         )
     )
 
@@ -40,7 +40,7 @@ async def test_anthropic_tool_stream_converts_to_function_call_item() -> None:
     text = await _collect_sse(
         _ADAPTER.iter_sse_from_anthropic(
             _aiter(_anthropic_tool_stream()),
-            {"model": "nvidia_nim/test-model", "stream": True},
+            {"model": "opencode_go/test-model", "stream": True},
         )
     )
 
@@ -62,7 +62,7 @@ async def test_namespaced_anthropic_tool_stream_restores_responses_namespace() -
         _ADAPTER.iter_sse_from_anthropic(
             _aiter(_anthropic_tool_stream(tool_name="mcp__node_repl__js")),
             {
-                "model": "nvidia_nim/test-model",
+                "model": "opencode_go/test-model",
                 "stream": True,
                 "tools": [
                     {
@@ -100,7 +100,7 @@ async def test_anthropic_custom_tool_stream_converts_to_custom_tool_call() -> No
                 )
             ),
             {
-                "model": "nvidia_nim/test-model",
+                "model": "opencode_go/test-model",
                 "stream": True,
                 "tools": [
                     {
@@ -144,7 +144,7 @@ async def test_anthropic_error_stream_converts_to_response_failed_event() -> Non
                     )
                 ]
             ),
-            {"model": "nvidia_nim/test-model", "stream": True},
+            {"model": "opencode_go/test-model", "stream": True},
         )
     )
 
@@ -181,7 +181,7 @@ async def test_split_usage_deltas_are_accumulated() -> None:
                 format_sse_event("message_stop", {"type": "message_stop"}),
             ]
         ),
-        {"model": "nvidia_nim/test-model", "stream": True},
+        {"model": "opencode_go/test-model", "stream": True},
     )
 
     assert response["usage"] == {
@@ -196,7 +196,7 @@ async def test_split_usage_deltas_are_accumulated() -> None:
 async def test_reasoning_stream_reports_reasoning_usage_detail() -> None:
     response = await _completed_response_from_sse(
         _aiter(_anthropic_reasoning_stream("inspect the code before answering")),
-        {"model": "nvidia_nim/test-model", "stream": True},
+        {"model": "opencode_go/test-model", "stream": True},
     )
 
     usage = response["usage"]
@@ -215,7 +215,7 @@ async def test_reasoning_usage_detail_is_capped_at_output_tokens() -> None:
                 output_tokens=1,
             )
         ),
-        {"model": "nvidia_nim/test-model", "stream": True},
+        {"model": "opencode_go/test-model", "stream": True},
     )
 
     assert response["usage"]["output_tokens"] == 1
@@ -231,7 +231,7 @@ async def test_reasoning_usage_detail_omits_zero_capped_count() -> None:
                 output_tokens=None,
             )
         ),
-        {"model": "nvidia_nim/test-model", "stream": True},
+        {"model": "opencode_go/test-model", "stream": True},
     )
 
     assert response["usage"] == {
@@ -245,7 +245,7 @@ async def test_reasoning_usage_detail_omits_zero_capped_count() -> None:
 async def test_text_only_usage_omits_reasoning_usage_detail() -> None:
     response = await _completed_response_from_sse(
         _aiter(_anthropic_text_stream("plain text only")),
-        {"model": "nvidia_nim/test-model", "stream": True},
+        {"model": "opencode_go/test-model", "stream": True},
     )
 
     assert response["usage"] == {
@@ -259,7 +259,7 @@ async def test_text_only_usage_omits_reasoning_usage_detail() -> None:
     ("request_payload", "tool_name", "partial_json", "expected_type", "expected_field"),
     [
         (
-            {"model": "nvidia_nim/test-model", "stream": True},
+            {"model": "opencode_go/test-model", "stream": True},
             "echo",
             '{"value":"FCC"}',
             "function_call",
@@ -267,7 +267,7 @@ async def test_text_only_usage_omits_reasoning_usage_detail() -> None:
         ),
         (
             {
-                "model": "nvidia_nim/test-model",
+                "model": "opencode_go/test-model",
                 "stream": True,
                 "tools": [{"type": "custom", "name": "apply_patch"}],
             },
@@ -307,7 +307,7 @@ async def test_overlapping_text_and_tool_blocks_keep_reserved_output_indexes() -
     text = await _collect_sse(
         _ADAPTER.iter_sse_from_anthropic(
             _aiter(_overlapping_text_tool_stream()),
-            {"model": "nvidia_nim/test-model", "stream": True},
+            {"model": "opencode_go/test-model", "stream": True},
         )
     )
 
@@ -336,7 +336,7 @@ async def test_overlapping_text_and_tool_blocks_keep_reserved_output_indexes() -
 async def test_overlapping_text_blocks_do_not_merge_content_by_index() -> None:
     response = await _completed_response_from_sse(
         _aiter(_overlapping_text_stream()),
-        {"model": "nvidia_nim/test-model", "stream": True},
+        {"model": "opencode_go/test-model", "stream": True},
     )
 
     assert [item["content"][0]["text"] for item in response["output"]] == [

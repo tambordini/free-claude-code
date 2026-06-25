@@ -7,9 +7,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from config.constants import NATIVE_MESSAGES_ERROR_BODY_LOG_CAP_BYTES
-from config.nim import NimSettings
 from providers.base import ProviderConfig
-from providers.nvidia_nim import NvidiaNimProvider
+from providers.opencode import OpenCodeProvider
 from providers.transports.anthropic_messages import stream as native_stream
 from tests.provider_request_mocks import make_openai_compat_stream_request
 from tests.providers.test_anthropic_messages import (
@@ -203,7 +202,7 @@ async def test_openai_compat_stream_failure_default_logs_exclude_exception_str(c
         base_url="http://localhost:1/v1",
         log_api_error_tracebacks=False,
     )
-    provider = NvidiaNimProvider(config, nim_settings=NimSettings())
+    provider = OpenCodeProvider(config)
     req = make_openai_compat_stream_request()
 
     @asynccontextmanager
@@ -238,7 +237,7 @@ async def test_openai_compat_stream_failure_respects_verbose_flag(caplog):
         base_url="http://localhost:1/v1",
         log_api_error_tracebacks=True,
     )
-    provider = NvidiaNimProvider(config, nim_settings=NimSettings())
+    provider = OpenCodeProvider(config)
     req = make_openai_compat_stream_request()
 
     @asynccontextmanager

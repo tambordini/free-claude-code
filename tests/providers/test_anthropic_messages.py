@@ -1,6 +1,7 @@
 """Tests for the shared native Anthropic Messages transport."""
 
 from contextlib import asynccontextmanager
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
@@ -33,6 +34,7 @@ class MockRequest:
     def __init__(self, *, thinking_enabled: bool = True, body: dict | None = None):
         self.thinking = MagicMock()
         self.thinking.enabled = thinking_enabled
+        self.messages = [SimpleNamespace(role="user", content="Hello")]
         self._body = body or {
             "model": self.model,
             "messages": [{"role": "user", "content": "Hello"}],

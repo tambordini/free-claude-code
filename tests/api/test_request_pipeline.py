@@ -83,7 +83,7 @@ async def test_pipeline_provider_execution_passes_routed_request_and_stream_meta
     provider = FakeProvider()
     pipeline = ApiRequestPipeline(Settings(), provider_getter=lambda _: provider)
     request = MessagesRequest(
-        model="nvidia_nim/test-model",
+        model="opencode/test-model",
         max_tokens=100,
         messages=[Message(role="user", content="hi")],
     )
@@ -105,7 +105,7 @@ async def test_pipeline_forces_no_thinking_for_safety_classifier_messages():
     provider = FakeProvider()
     pipeline = ApiRequestPipeline(Settings(), provider_getter=lambda _: provider)
     request = MessagesRequest(
-        model="nvidia_nim/test-model",
+        model="opencode/test-model",
         max_tokens=100,
         system=_CLASSIFIER_SYSTEM,
         messages=[Message(role="user", content=_CLASSIFIER_USER)],
@@ -138,7 +138,7 @@ async def test_pipeline_preserves_thinking_for_non_classifier_messages():
     provider = FakeProvider()
     pipeline = ApiRequestPipeline(Settings(), provider_getter=lambda _: provider)
     request = MessagesRequest(
-        model="nvidia_nim/test-model",
+        model="opencode/test-model",
         max_tokens=100,
         system="Explain XML formats.",
         messages=[
@@ -170,7 +170,7 @@ async def test_pipeline_keeps_existing_no_thinking_for_classifier_messages():
     provider = FakeProvider()
     pipeline = ApiRequestPipeline(Settings(), provider_getter=lambda _: provider)
     request = MessagesRequest(
-        model="claude-3-freecc-no-thinking/nvidia_nim/test-model",
+        model="claude-3-freecc-no-thinking/opencode/test-model",
         max_tokens=100,
         system=_CLASSIFIER_SYSTEM,
         messages=[Message(role="user", content=_CLASSIFIER_USER)],
@@ -200,7 +200,7 @@ def test_pipeline_message_optimization_intercepts_before_provider_execution():
     provider_getter = MagicMock()
     pipeline = ApiRequestPipeline(Settings(), provider_getter=provider_getter)
     request = MessagesRequest(
-        model="nvidia_nim/test-model",
+        model="opencode/test-model",
         max_tokens=100,
         messages=[Message(role="user", content="quota check")],
     )
@@ -223,7 +223,7 @@ async def test_pipeline_responses_bypass_message_only_optimizations():
     ):
         response = await pipeline.create_response(
             request_data=OpenAIResponsesRequest(
-                model="nvidia_nim/test-model",
+                model="opencode/test-model",
                 input="quota check",
             )
         )
@@ -242,7 +242,7 @@ async def test_pipeline_responses_do_not_apply_safety_classifier_policy():
     with patch("api.request_pipeline.trace_event") as trace_mock:
         response = await pipeline.create_response(
             request_data=OpenAIResponsesRequest(
-                model="nvidia_nim/test-model",
+                model="opencode/test-model",
                 input=_CLASSIFIER_USER,
                 instructions=_CLASSIFIER_SYSTEM,
             )

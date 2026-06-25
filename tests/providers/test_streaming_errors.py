@@ -1,4 +1,4 @@
-"""Tests for streaming error handling in providers/nvidia_nim/client.py."""
+"""Tests for streaming error handling in providers/opencode/client.py."""
 
 import json
 from types import SimpleNamespace
@@ -8,13 +8,12 @@ import httpx
 import openai
 import pytest
 
-from config.nim import NimSettings
 from core.anthropic.stream_contracts import (
     assert_anthropic_stream_contract,
     parse_sse_text,
 )
 from providers.base import ProviderConfig
-from providers.nvidia_nim import NvidiaNimProvider
+from providers.opencode import OpenCodeProvider
 from providers.transports.openai_chat.recovery import OpenAIChatRecovery
 from providers.transports.openai_chat.tool_calls import OpenAIToolCallAssembler
 from tests.provider_request_mocks import make_openai_compat_stream_request
@@ -45,10 +44,10 @@ def _make_provider():
         rate_limit=10,
         rate_window=60,
     )
-    return NvidiaNimProvider(config, nim_settings=NimSettings())
+    return OpenCodeProvider(config, provider_name="OPENCODE")
 
 
-def _make_tool_assembler(provider: NvidiaNimProvider) -> OpenAIToolCallAssembler:
+def _make_tool_assembler(provider: OpenCodeProvider) -> OpenAIToolCallAssembler:
     return OpenAIToolCallAssembler(
         record_extra_content=provider._record_tool_call_extra_content
     )
@@ -63,7 +62,7 @@ def _make_provider_with_thinking_enabled(enabled: bool):
         rate_window=60,
         enable_thinking=enabled,
     )
-    return NvidiaNimProvider(config, nim_settings=NimSettings())
+    return OpenCodeProvider(config, provider_name="OPENCODE")
 
 
 def _make_request(model="test-model", stream=True):
@@ -313,7 +312,7 @@ class TestStreamingExceptionHandling:
 
     @pytest.mark.asyncio
     async def test_upstream_completion_tokens_null_emits_int_usage(self):
-        """NIM/GLM may send usage.completion_tokens=null; final SSE must not use JSON null."""
+        """Some providers may send usage.completion_tokens=null; final SSE must not use JSON null."""
         provider = _make_provider()
         request = _make_request()
 
@@ -355,7 +354,7 @@ class TestStreamingExceptionHandling:
     async def test_reasoning_only_stream_emits_placeholder_text(self):
         """When the model streams only ``reasoning_content`` (no ``content``), add text block.
 
-        NIM / some templates may emit no main ``content``; a minimal text block matches
+        OPENCODE / some templates may emit no main ``content``; a minimal text block matches
         the empty-body placeholder and helps clients that expect a text segment.
         """
         provider = _make_provider_with_thinking_enabled(True)
@@ -511,13 +510,13 @@ class TestStreamingExceptionHandling:
 
         event_text = "".join(events)
         assert (
-            "Upstream provider NIM rejected the request method or endpoint (HTTP 405)."
+            "Upstream provider OPENCODE rejected the request method or endpoint (HTTP 405)."
             in event_text
         )
         assert "Request ID: REQ405" in event_text
         _assert_no_content_deltas_after_error_text(
             events,
-            "Upstream provider NIM rejected the request method or endpoint (HTTP 405).",
+            "Upstream provider OPENCODE rejected the request method or endpoint (HTTP 405).",
         )
 
     @pytest.mark.asyncio
@@ -558,7 +557,7 @@ class TestStreamingExceptionHandling:
             if ev.event == "content_block_delta"
             and ev.data.get("delta", {}).get("type") == "text_delta"
         )
-        assert "Upstream provider NIM returned HTTP 400." in event_text
+        assert "Upstream provider OPENCODE returned HTTP 400." in event_text
         assert "Category: BadRequest" in event_text
         assert "Thinking mode does not support this tool_choice" in event_text
         assert (
@@ -568,7 +567,7 @@ class TestStreamingExceptionHandling:
         assert "Request ID: REQ_BODY" in event_text
         _assert_no_content_deltas_after_error_text(
             events,
-            "Upstream provider NIM returned HTTP 400.",
+            "Upstream provider OPENCODE returned HTTP 400.",
         )
 
     @pytest.mark.asyncio

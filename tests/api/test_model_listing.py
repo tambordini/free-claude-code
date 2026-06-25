@@ -9,9 +9,9 @@ from providers.registry import ProviderRegistry
 
 def _settings(
     *,
-    model: str = "deepseek/deepseek-chat",
-    model_opus: str | None = "open_router/anthropic/claude-opus",
-    model_haiku: str | None = "deepseek/deepseek-chat",
+    model: str = "opencode/deepseek-chat",
+    model_opus: str | None = "opencode_go/anthropic/claude-opus",
+    model_haiku: str | None = "opencode/deepseek-chat",
 ) -> Settings:
     return Settings.model_construct(
         model=model,
@@ -26,8 +26,8 @@ def test_models_list_includes_configured_refs_cached_provider_models_and_aliases
     app = create_app(lifespan_enabled=False)
     settings = _settings()
     registry = ProviderRegistry()
-    registry.cache_model_ids("deepseek", {"deepseek-chat"})
-    registry.cache_model_ids("open_router", {"meta/llama-3.3", "anthropic/claude-opus"})
+    registry.cache_model_ids("opencode", {"deepseek-chat"})
+    registry.cache_model_ids("opencode_go", {"meta/llama-3.3", "anthropic/claude-opus"})
     app.state.provider_registry = registry
     app.dependency_overrides[get_settings] = lambda: settings
 
@@ -41,27 +41,27 @@ def test_models_list_includes_configured_refs_cached_provider_models_and_aliases
     ids = [item["id"] for item in data["data"]]
 
     assert ids[:6] == [
-        "anthropic/deepseek/deepseek-chat",
-        "claude-3-freecc-no-thinking/deepseek/deepseek-chat",
-        "anthropic/open_router/anthropic/claude-opus",
-        "claude-3-freecc-no-thinking/open_router/anthropic/claude-opus",
-        "anthropic/open_router/meta/llama-3.3",
-        "claude-3-freecc-no-thinking/open_router/meta/llama-3.3",
+        "anthropic/opencode/deepseek-chat",
+        "claude-3-freecc-no-thinking/opencode/deepseek-chat",
+        "anthropic/opencode_go/anthropic/claude-opus",
+        "claude-3-freecc-no-thinking/opencode_go/anthropic/claude-opus",
+        "anthropic/opencode_go/meta/llama-3.3",
+        "claude-3-freecc-no-thinking/opencode_go/meta/llama-3.3",
     ]
-    assert ids.count("anthropic/deepseek/deepseek-chat") == 1
-    assert ids.count("claude-3-freecc-no-thinking/deepseek/deepseek-chat") == 1
-    assert ids.count("anthropic/open_router/anthropic/claude-opus") == 1
+    assert ids.count("anthropic/opencode/deepseek-chat") == 1
+    assert ids.count("claude-3-freecc-no-thinking/opencode/deepseek-chat") == 1
+    assert ids.count("anthropic/opencode_go/anthropic/claude-opus") == 1
     assert (
-        ids.count("claude-3-freecc-no-thinking/open_router/anthropic/claude-opus") == 1
+        ids.count("claude-3-freecc-no-thinking/opencode_go/anthropic/claude-opus") == 1
     )
     display_names = {item["id"]: item["display_name"] for item in data["data"]}
     assert (
-        display_names["anthropic/open_router/meta/llama-3.3"]
-        == "open_router/meta/llama-3.3"
+        display_names["anthropic/opencode_go/meta/llama-3.3"]
+        == "opencode_go/meta/llama-3.3"
     )
     assert (
-        display_names["claude-3-freecc-no-thinking/open_router/meta/llama-3.3"]
-        == "open_router/meta/llama-3.3 (no thinking)"
+        display_names["claude-3-freecc-no-thinking/opencode_go/meta/llama-3.3"]
+        == "opencode_go/meta/llama-3.3 (no thinking)"
     )
     assert "claude-sonnet-4-20250514" in ids
     assert data["first_id"] == ids[0]
@@ -69,13 +69,13 @@ def test_models_list_includes_configured_refs_cached_provider_models_and_aliases
     assert data["has_more"] is False
 
 
-def test_models_list_uses_openrouter_thinking_metadata_for_cached_models():
+def test_models_list_uses_thinking_metadata_for_cached_models():
     app = create_app(lifespan_enabled=False)
     settings = _settings(model_opus=None)
     registry = ProviderRegistry()
-    registry.cache_model_ids("deepseek", {"deepseek-chat"})
+    registry.cache_model_ids("opencode", {"deepseek-chat"})
     registry.cache_model_infos(
-        "open_router",
+        "opencode_go",
         {
             ProviderModelInfo("reasoning-model", supports_thinking=True),
             ProviderModelInfo("plain-model", supports_thinking=False),
@@ -91,22 +91,22 @@ def test_models_list_uses_openrouter_thinking_metadata_for_cached_models():
 
     assert response.status_code == 200
     ids = [item["id"] for item in response.json()["data"]]
-    assert "anthropic/open_router/reasoning-model" in ids
-    assert "claude-3-freecc-no-thinking/open_router/reasoning-model" in ids
-    assert "anthropic/open_router/plain-model" not in ids
-    assert "claude-3-freecc-no-thinking/open_router/plain-model" in ids
+    assert "anthropic/opencode_go/reasoning-model" in ids
+    assert "claude-3-freecc-no-thinking/opencode_go/reasoning-model" in ids
+    assert "anthropic/opencode_go/plain-model" not in ids
+    assert "claude-3-freecc-no-thinking/opencode_go/plain-model" in ids
 
 
-def test_models_list_uses_cached_metadata_for_configured_openrouter_refs():
+def test_models_list_uses_cached_metadata_for_configured_opencode_go_refs():
     app = create_app(lifespan_enabled=False)
     settings = _settings(
-        model="open_router/plain-model",
+        model="opencode_go/plain-model",
         model_opus=None,
         model_haiku=None,
     )
     registry = ProviderRegistry()
     registry.cache_model_infos(
-        "open_router",
+        "opencode_go",
         {ProviderModelInfo("plain-model", supports_thinking=False)},
     )
     app.state.provider_registry = registry
@@ -119,19 +119,19 @@ def test_models_list_uses_cached_metadata_for_configured_openrouter_refs():
 
     assert response.status_code == 200
     ids = [item["id"] for item in response.json()["data"]]
-    assert "anthropic/open_router/plain-model" not in ids
-    assert ids[0] == "claude-3-freecc-no-thinking/open_router/plain-model"
+    assert "anthropic/opencode_go/plain-model" not in ids
+    assert ids[0] == "claude-3-freecc-no-thinking/opencode_go/plain-model"
 
 
-def test_models_list_includes_cached_wafer_models():
+def test_models_list_includes_cached_opencode_go_models():
     app = create_app(lifespan_enabled=False)
     settings = _settings(
-        model="wafer/DeepSeek-V4-Pro",
+        model="opencode_go/DeepSeek-V4-Pro",
         model_opus=None,
         model_haiku=None,
     )
     registry = ProviderRegistry()
-    registry.cache_model_ids("wafer", {"DeepSeek-V4-Pro", "MiniMax-M2.7"})
+    registry.cache_model_ids("opencode_go", {"DeepSeek-V4-Pro", "MiniMax-M2.7"})
     app.state.provider_registry = registry
     app.dependency_overrides[get_settings] = lambda: settings
 
@@ -142,10 +142,10 @@ def test_models_list_includes_cached_wafer_models():
 
     assert response.status_code == 200
     ids = [item["id"] for item in response.json()["data"]]
-    assert "anthropic/wafer/DeepSeek-V4-Pro" in ids
-    assert "claude-3-freecc-no-thinking/wafer/DeepSeek-V4-Pro" in ids
-    assert "anthropic/wafer/MiniMax-M2.7" in ids
-    assert "claude-3-freecc-no-thinking/wafer/MiniMax-M2.7" in ids
+    assert "anthropic/opencode_go/DeepSeek-V4-Pro" in ids
+    assert "claude-3-freecc-no-thinking/opencode_go/DeepSeek-V4-Pro" in ids
+    assert "anthropic/opencode_go/MiniMax-M2.7" in ids
+    assert "claude-3-freecc-no-thinking/opencode_go/MiniMax-M2.7" in ids
 
 
 def test_models_list_works_without_provider_registry():
@@ -161,9 +161,9 @@ def test_models_list_works_without_provider_registry():
     assert response.status_code == 200
     ids = [item["id"] for item in response.json()["data"]]
     assert ids[:4] == [
-        "anthropic/deepseek/deepseek-chat",
-        "claude-3-freecc-no-thinking/deepseek/deepseek-chat",
-        "anthropic/open_router/anthropic/claude-opus",
-        "claude-3-freecc-no-thinking/open_router/anthropic/claude-opus",
+        "anthropic/opencode/deepseek-chat",
+        "claude-3-freecc-no-thinking/opencode/deepseek-chat",
+        "anthropic/opencode_go/anthropic/claude-opus",
+        "claude-3-freecc-no-thinking/opencode_go/anthropic/claude-opus",
     ]
     assert "claude-sonnet-4-20250514" in ids

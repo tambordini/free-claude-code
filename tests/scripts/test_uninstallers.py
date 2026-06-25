@@ -7,6 +7,22 @@ from pathlib import Path
 import pytest
 
 
+def _fcc_processes_running() -> bool:
+    """Check if any fcc-server/free-claude-code process is running."""
+    try:
+        result = subprocess.run(
+            ["pgrep", "-f", "fcc-server|free-claude-code"],
+            capture_output=True,
+            check=False,
+        )
+        return result.returncode == 0
+    except FileNotFoundError:
+        return False
+
+
+FCC_RUNNING = _fcc_processes_running()
+
+
 def _repo_root() -> Path:
     return Path(__file__).resolve().parents[2]
 
@@ -188,6 +204,9 @@ def test_uninstall_ps1_missing_tool_detection_is_narrow() -> None:
     assert "locked" not in detector_body
 
 
+@pytest.mark.skipif(
+    FCC_RUNNING, reason="fcc-server/free-claude-code process is running locally"
+)
 def test_uninstall_sh_generic_uv_failure_does_not_delete_fcc_home(
     tmp_path: Path,
 ) -> None:
@@ -224,6 +243,9 @@ def test_uninstall_sh_generic_uv_failure_does_not_delete_fcc_home(
     assert "before deleting ~/.fcc" in result.stderr
 
 
+@pytest.mark.skipif(
+    FCC_RUNNING, reason="fcc-server/free-claude-code process is running locally"
+)
 def test_uninstall_sh_missing_tool_still_deletes_fcc_home(tmp_path: Path) -> None:
     sh = shutil.which("sh")
     if sh is None:
@@ -256,6 +278,9 @@ def test_uninstall_sh_missing_tool_still_deletes_fcc_home(tmp_path: Path) -> Non
     assert not fcc_home.exists()
 
 
+@pytest.mark.skipif(
+    FCC_RUNNING, reason="fcc-server/free-claude-code process is running locally"
+)
 def test_uninstall_sh_missing_uv_still_deletes_fcc_home(tmp_path: Path) -> None:
     sh = shutil.which("sh")
     if sh is None:

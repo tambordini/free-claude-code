@@ -52,9 +52,9 @@ def test_target_disabled_skip_is_not_missing_env() -> None:
 def test_explicit_missing_env_skip_wins_over_network_words() -> None:
     classification = classify_outcome(
         nodeid="smoke/prereq/test_local_provider_endpoints_prereq_live.py::"
-        "test_ollama_endpoint_prereq_live",
+        "test_opencode_go_endpoint_prereq_live",
         outcome="skipped",
-        detail="Skipped: missing_env: ollama local server is not reachable: timed out",
+        detail="Skipped: missing_env: opencode_go endpoint is not reachable: timed out",
     )
 
     assert classification == "missing_env"

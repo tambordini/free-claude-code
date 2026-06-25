@@ -3,10 +3,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from config.nim import NimSettings
 from core.anthropic import ContentBlockManager
 from providers.base import ProviderConfig
-from providers.nvidia_nim import NvidiaNimProvider
+from providers.opencode import OpenCodeProvider
 from providers.transports.openai_chat.tool_calls import OpenAIToolCallAssembler
 
 
@@ -14,7 +13,7 @@ from providers.transports.openai_chat.tool_calls import OpenAIToolCallAssembler
 async def test_task_tool_interception():
     # Setup provider
     config = ProviderConfig(api_key="test")
-    provider = NvidiaNimProvider(config, nim_settings=NimSettings())
+    provider = OpenCodeProvider(config)
 
     # Mock request and sse builder with real ContentBlockManager
     request = MagicMock()

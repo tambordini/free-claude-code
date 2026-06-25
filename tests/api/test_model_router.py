@@ -10,7 +10,7 @@ from config.settings import Settings
 @pytest.fixture
 def settings():
     settings = Settings()
-    settings.model = "nvidia_nim/fallback-model"
+    settings.model = "opencode/fallback-model"
     settings.model_opus = None
     settings.model_sonnet = None
     settings.model_haiku = None
@@ -25,14 +25,14 @@ def test_model_router_resolves_default_model(settings):
     resolved = ModelRouter(settings).resolve("claude-3-opus")
 
     assert resolved.original_model == "claude-3-opus"
-    assert resolved.provider_id == "nvidia_nim"
+    assert resolved.provider_id == "opencode"
     assert resolved.provider_model == "fallback-model"
-    assert resolved.provider_model_ref == "nvidia_nim/fallback-model"
+    assert resolved.provider_model_ref == "opencode/fallback-model"
     assert resolved.thinking_enabled is True
 
 
 def test_model_router_applies_opus_override(settings):
-    settings.model_opus = "open_router/deepseek/deepseek-r1"
+    settings.model_opus = "opencode_go/deepseek/deepseek-r1"
 
     request = MessagesRequest(
         model="claude-opus-4-20250514",
@@ -42,7 +42,7 @@ def test_model_router_applies_opus_override(settings):
     routed = ModelRouter(settings).resolve_messages_request(request)
 
     assert routed.request.model == "deepseek/deepseek-r1"
-    assert routed.resolved.provider_model_ref == "open_router/deepseek/deepseek-r1"
+    assert routed.resolved.provider_model_ref == "opencode_go/deepseek/deepseek-r1"
     assert routed.resolved.original_model == "claude-opus-4-20250514"
     assert routed.resolved.thinking_enabled is True
     assert request.model == "claude-opus-4-20250514"
@@ -62,7 +62,7 @@ def test_model_router_resolves_per_model_thinking(settings):
 
 
 def test_model_router_applies_haiku_override(settings):
-    settings.model_haiku = "lmstudio/qwen2.5-7b"
+    settings.model_haiku = "opencode/qwen2.5-7b"
 
     routed = ModelRouter(settings).resolve_messages_request(
         MessagesRequest(
@@ -73,11 +73,11 @@ def test_model_router_applies_haiku_override(settings):
     )
 
     assert routed.request.model == "qwen2.5-7b"
-    assert routed.resolved.provider_model_ref == "lmstudio/qwen2.5-7b"
+    assert routed.resolved.provider_model_ref == "opencode/qwen2.5-7b"
 
 
 def test_model_router_applies_sonnet_override(settings):
-    settings.model_sonnet = "nvidia_nim/meta/llama-3.3-70b-instruct"
+    settings.model_sonnet = "opencode/meta/llama-3.3-70b-instruct"
 
     routed = ModelRouter(settings).resolve_messages_request(
         MessagesRequest(
@@ -88,46 +88,44 @@ def test_model_router_applies_sonnet_override(settings):
     )
 
     assert routed.request.model == "meta/llama-3.3-70b-instruct"
-    assert (
-        routed.resolved.provider_model_ref == "nvidia_nim/meta/llama-3.3-70b-instruct"
-    )
+    assert routed.resolved.provider_model_ref == "opencode/meta/llama-3.3-70b-instruct"
 
 
 def test_model_router_routes_prefixed_provider_model_directly(settings):
     routed = ModelRouter(settings).resolve_messages_request(
         MessagesRequest(
-            model="deepseek/deepseek-chat",
+            model="opencode/deepseek-chat",
             max_tokens=100,
             messages=[Message(role="user", content="hello")],
         )
     )
 
     assert routed.request.model == "deepseek-chat"
-    assert routed.resolved.original_model == "deepseek/deepseek-chat"
-    assert routed.resolved.provider_id == "deepseek"
+    assert routed.resolved.original_model == "opencode/deepseek-chat"
+    assert routed.resolved.provider_id == "opencode"
     assert routed.resolved.provider_model == "deepseek-chat"
-    assert routed.resolved.provider_model_ref == "deepseek/deepseek-chat"
+    assert routed.resolved.provider_model_ref == "opencode/deepseek-chat"
 
 
-def test_model_router_routes_wafer_provider_model_directly(settings):
+def test_model_router_routes_opencode_go_provider_model_directly(settings):
     routed = ModelRouter(settings).resolve_messages_request(
         MessagesRequest(
-            model="wafer/DeepSeek-V4-Pro",
+            model="opencode_go/DeepSeek-V4-Pro",
             max_tokens=100,
             messages=[Message(role="user", content="hello")],
         )
     )
 
     assert routed.request.model == "DeepSeek-V4-Pro"
-    assert routed.resolved.provider_id == "wafer"
+    assert routed.resolved.provider_id == "opencode_go"
     assert routed.resolved.provider_model == "DeepSeek-V4-Pro"
-    assert routed.resolved.provider_model_ref == "wafer/DeepSeek-V4-Pro"
+    assert routed.resolved.provider_model_ref == "opencode_go/DeepSeek-V4-Pro"
 
 
 def test_model_router_routes_gateway_encoded_provider_model_directly(settings):
     routed = ModelRouter(settings).resolve_messages_request(
         MessagesRequest(
-            model="anthropic/nvidia_nim/deepseek-ai/deepseek-v4-pro",
+            model="anthropic/opencode/deepseek-ai/deepseek-v4-pro",
             max_tokens=100,
             messages=[Message(role="user", content="hello")],
         )
@@ -136,13 +134,13 @@ def test_model_router_routes_gateway_encoded_provider_model_directly(settings):
     assert routed.request.model == "deepseek-ai/deepseek-v4-pro"
     assert (
         routed.resolved.original_model
-        == "anthropic/nvidia_nim/deepseek-ai/deepseek-v4-pro"
+        == "anthropic/opencode/deepseek-ai/deepseek-v4-pro"
     )
-    assert routed.resolved.provider_id == "nvidia_nim"
+    assert routed.resolved.provider_id == "opencode"
     assert routed.resolved.provider_model == "deepseek-ai/deepseek-v4-pro"
     assert (
         routed.resolved.provider_model_ref
-        == "anthropic/nvidia_nim/deepseek-ai/deepseek-v4-pro"
+        == "anthropic/opencode/deepseek-ai/deepseek-v4-pro"
     )
 
 
@@ -151,7 +149,7 @@ def test_model_router_routes_no_thinking_gateway_model_directly(settings):
 
     routed = ModelRouter(settings).resolve_messages_request(
         MessagesRequest(
-            model="claude-3-freecc-no-thinking/nvidia_nim/deepseek-ai/deepseek-v4-pro",
+            model="claude-3-freecc-no-thinking/opencode/deepseek-ai/deepseek-v4-pro",
             max_tokens=100,
             messages=[Message(role="user", content="hello")],
         )
@@ -160,9 +158,9 @@ def test_model_router_routes_no_thinking_gateway_model_directly(settings):
     assert routed.request.model == "deepseek-ai/deepseek-v4-pro"
     assert (
         routed.resolved.original_model
-        == "claude-3-freecc-no-thinking/nvidia_nim/deepseek-ai/deepseek-v4-pro"
+        == "claude-3-freecc-no-thinking/opencode/deepseek-ai/deepseek-v4-pro"
     )
-    assert routed.resolved.provider_id == "nvidia_nim"
+    assert routed.resolved.provider_id == "opencode"
     assert routed.resolved.provider_model == "deepseek-ai/deepseek-v4-pro"
     assert routed.resolved.thinking_enabled is False
 
@@ -171,15 +169,15 @@ def test_model_router_direct_prefixed_model_uses_provider_model_for_thinking(set
     settings.enable_model_thinking = False
     settings.enable_opus_thinking = True
 
-    resolved = ModelRouter(settings).resolve("open_router/anthropic/claude-opus-4")
+    resolved = ModelRouter(settings).resolve("opencode_go/anthropic/claude-opus-4")
 
-    assert resolved.provider_id == "open_router"
+    assert resolved.provider_id == "opencode_go"
     assert resolved.provider_model == "anthropic/claude-opus-4"
     assert resolved.thinking_enabled is True
 
 
 def test_model_router_routes_token_count_request(settings):
-    settings.model_haiku = "lmstudio/qwen2.5-7b"
+    settings.model_haiku = "opencode/qwen2.5-7b"
 
     request = TokenCountRequest(
         model="claude-3-haiku-20240307",

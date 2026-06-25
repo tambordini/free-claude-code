@@ -19,7 +19,6 @@ def _flow(*, enabled: bool = True) -> VoiceNoteFlow:
         whisper_model="base",
         whisper_device="cpu",
         hf_token="",
-        nvidia_nim_api_key="",
         log_raw_messaging_content=False,
         log_api_error_tracebacks=False,
     )

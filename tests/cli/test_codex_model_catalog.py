@@ -49,16 +49,16 @@ def _slugs(catalog: Mapping[str, Any]) -> list[str]:
 def test_codex_catalog_converts_configured_and_cached_models_to_direct_slugs() -> None:
     catalog = build_codex_model_catalog(
         _models_payload(
-            "anthropic/nvidia_nim/nvidia/nemotron-3-super",
-            "claude-3-freecc-no-thinking/nvidia_nim/nvidia/nemotron-3-super",
-            "anthropic/open_router/meta-llama/llama-3.3-70b",
-            "claude-3-freecc-no-thinking/open_router/meta-llama/llama-3.3-70b",
+            "anthropic/opencode/nvidia/nemotron-3-super",
+            "claude-3-freecc-no-thinking/opencode/nvidia/nemotron-3-super",
+            "anthropic/opencode_go/meta-llama/llama-3.3-70b",
+            "claude-3-freecc-no-thinking/opencode_go/meta-llama/llama-3.3-70b",
         )
     )
 
     assert _slugs(catalog) == [
-        "nvidia_nim/nvidia/nemotron-3-super",
-        "open_router/meta-llama/llama-3.3-70b",
+        "opencode/nvidia/nemotron-3-super",
+        "opencode_go/meta-llama/llama-3.3-70b",
     ]
     model = _catalog_models(catalog)[0]
     assert {
@@ -81,47 +81,47 @@ def test_codex_catalog_excludes_claude_compatibility_model_ids() -> None:
         _models_payload(
             "claude-opus-4-20250514",
             "claude-3-haiku-20240307",
-            "anthropic/nvidia_nim/provider-model",
+            "anthropic/opencode/provider-model",
         )
     )
 
-    assert _slugs(catalog) == ["nvidia_nim/provider-model"]
+    assert _slugs(catalog) == ["opencode/provider-model"]
 
 
 def test_codex_catalog_skips_no_thinking_duplicate_when_normal_slug_exists() -> None:
     catalog = build_codex_model_catalog(
         _models_payload(
-            "claude-3-freecc-no-thinking/nvidia_nim/provider-model",
-            "anthropic/nvidia_nim/provider-model",
+            "claude-3-freecc-no-thinking/opencode/provider-model",
+            "anthropic/opencode/provider-model",
         )
     )
 
-    assert _slugs(catalog) == ["nvidia_nim/provider-model"]
+    assert _slugs(catalog) == ["opencode/provider-model"]
 
 
 def test_codex_catalog_preserves_no_thinking_only_entries_for_routing() -> None:
     catalog = build_codex_model_catalog(
-        _models_payload("claude-3-freecc-no-thinking/open_router/plain-model")
+        _models_payload("claude-3-freecc-no-thinking/opencode_go/plain-model")
     )
 
-    assert _slugs(catalog) == ["claude-3-freecc-no-thinking/open_router/plain-model"]
+    assert _slugs(catalog) == ["claude-3-freecc-no-thinking/opencode_go/plain-model"]
 
 
 def test_codex_catalog_ordering_and_priorities_are_deterministic() -> None:
     catalog = build_codex_model_catalog(
         _models_payload(
-            "anthropic/gemini/models/gemini-test",
-            "anthropic/nvidia_nim/nvidia/test",
-            "anthropic/gemini/models/gemini-test",
-            "anthropic/open_router/provider/test",
+            "anthropic/opencode/models/opencode-test",
+            "anthropic/opencode/nvidia/test",
+            "anthropic/opencode/models/opencode-test",
+            "anthropic/opencode_go/provider/test",
         )
     )
 
     models = _catalog_models(catalog)
     assert _slugs(catalog) == [
-        "gemini/models/gemini-test",
-        "nvidia_nim/nvidia/test",
-        "open_router/provider/test",
+        "opencode/models/opencode-test",
+        "opencode/nvidia/test",
+        "opencode_go/provider/test",
     ]
     assert [model["priority"] for model in models] == [0, 1, 2]
 
@@ -129,14 +129,14 @@ def test_codex_catalog_ordering_and_priorities_are_deterministic() -> None:
 def test_codex_catalog_accepts_future_direct_provider_slugs() -> None:
     catalog = build_codex_model_catalog(
         _models_payload(
-            "nvidia_nim/provider-model",
-            "anthropic/open_router/provider-model",
+            "opencode/provider-model",
+            "anthropic/opencode_go/provider-model",
         )
     )
 
     assert _slugs(catalog) == [
-        "nvidia_nim/provider-model",
-        "open_router/provider-model",
+        "opencode/provider-model",
+        "opencode_go/provider-model",
     ]
 
 
@@ -150,7 +150,7 @@ def test_generated_catalog_schema_is_accepted_by_installed_codex(
     catalog_path = tmp_path / "codex-model-catalog.json"
     write_codex_model_catalog(
         catalog_path,
-        build_codex_model_catalog(_models_payload("anthropic/nvidia_nim/test-model")),
+        build_codex_model_catalog(_models_payload("anthropic/opencode/test-model")),
     )
 
     result = subprocess.run(
@@ -168,4 +168,4 @@ def test_generated_catalog_schema_is_accepted_by_installed_codex(
     )
 
     assert result.returncode == 0, result.stderr
-    assert "nvidia_nim/test-model" in result.stdout
+    assert "opencode/test-model" in result.stdout

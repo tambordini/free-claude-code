@@ -1,4 +1,4 @@
-"""Tests for config/settings.py and config/nim.py"""
+"""Tests for config/settings.py"""
 
 from typing import Any, cast
 
@@ -6,10 +6,8 @@ import pytest
 from pydantic import ValidationError
 
 from config.constants import (
-    ANTHROPIC_DEFAULT_MAX_OUTPUT_TOKENS,
     HTTP_CONNECT_TIMEOUT_DEFAULT,
 )
-from config.nim import NimSettings
 
 
 class TestSettings:
@@ -32,10 +30,9 @@ class TestSettings:
         monkeypatch.delenv("HTTP_CONNECT_TIMEOUT", raising=False)
         monkeypatch.setitem(Settings.model_config, "env_file", ())
         settings = Settings()
-        assert settings.model == "nvidia_nim/nvidia/nemotron-3-super-120b-a12b"
+        assert settings.model == "opencode/deepseek-v4-flash-free"
         assert isinstance(settings.provider_rate_limit, int)
         assert isinstance(settings.provider_rate_window, int)
-        assert isinstance(settings.nim.temperature, float)
         assert isinstance(settings.fast_prefix_detection, bool)
         assert isinstance(settings.enable_model_thinking, bool)
         assert settings.http_read_timeout == 120.0
@@ -79,16 +76,18 @@ class TestSettings:
 
         assert not hasattr(settings, "log_file")
 
-    def test_stale_zai_base_url_env_is_ignored(self, monkeypatch):
-        """Cloud Z.ai endpoint is fixed in provider metadata, not settings."""
+    def test_stale_opencode_go_base_url_env_is_ignored(self, monkeypatch):
+        """Legacy opencode_go base URL env is not a Settings field."""
         from config.settings import Settings
 
-        monkeypatch.setenv("ZAI_BASE_URL", "https://custom.zai.invalid/v1")
+        monkeypatch.setenv(
+            "OPENCODE_GO_BASE_URL", "https://custom.opencodego.invalid/v1"
+        )
         monkeypatch.setitem(Settings.model_config, "env_file", ())
 
         settings = Settings()
 
-        assert not hasattr(settings, "zai_base_url")
+        assert not hasattr(settings, "opencode_go_base_url")
 
     def test_blank_claude_workspace_uses_fcc_home(self, monkeypatch, tmp_path):
         """An explicit blank env value does not affect the fixed workspace path."""
@@ -157,14 +156,6 @@ class TestSettings:
         s2 = get_settings()
         assert s1 is s2  # Same object (cached)
 
-    def test_empty_string_to_none_for_optional_int(self):
-        """Test that empty string converts to None for optional int fields."""
-        from config.settings import Settings
-
-        # Settings should handle NVIDIA_NIM_SEED="" gracefully
-        settings = Settings()
-        assert settings.nim.seed is None or isinstance(settings.nim.seed, int)
-
     def test_model_setting(self):
         """Test model setting exists and is a string."""
         from config.settings import Settings
@@ -172,37 +163,6 @@ class TestSettings:
         settings = Settings()
         assert isinstance(settings.model, str)
         assert len(settings.model) > 0
-
-    def test_base_url_constant(self):
-        """Test NVIDIA_NIM_DEFAULT_BASE is a constant."""
-        from providers.nvidia_nim import NVIDIA_NIM_DEFAULT_BASE
-
-        assert NVIDIA_NIM_DEFAULT_BASE == "https://integrate.api.nvidia.com/v1"
-
-    def test_lm_studio_base_url_from_env(self, monkeypatch):
-        """LM_STUDIO_BASE_URL env var is loaded into settings."""
-        from config.settings import Settings
-
-        monkeypatch.setenv("LM_STUDIO_BASE_URL", "http://custom:5678/v1")
-        settings = Settings()
-        assert settings.lm_studio_base_url == "http://custom:5678/v1"
-
-    def test_ollama_base_url_defaults_to_root(self, monkeypatch):
-        """OLLAMA_BASE_URL defaults to the Anthropic-compatible Ollama root URL."""
-        from config.settings import Settings
-
-        monkeypatch.delenv("OLLAMA_BASE_URL", raising=False)
-        monkeypatch.setitem(Settings.model_config, "env_file", ())
-        settings = Settings()
-        assert settings.ollama_base_url == "http://localhost:11434"
-
-    def test_ollama_base_url_rejects_v1_suffix(self, monkeypatch):
-        """OLLAMA_BASE_URL must not include /v1 for native Anthropic messages."""
-        from config.settings import Settings
-
-        monkeypatch.setenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
-        with pytest.raises(ValidationError, match="without /v1"):
-            Settings()
 
     def test_provider_rate_limit_from_env(self, monkeypatch):
         """PROVIDER_RATE_LIMIT env var is loaded into settings."""
@@ -263,14 +223,6 @@ class TestSettings:
         monkeypatch.setenv("ENABLE_MODEL_THINKING", "false")
         settings = Settings()
         assert settings.enable_model_thinking is False
-
-    def test_wafer_api_key_from_env(self, monkeypatch):
-        """WAFER_API_KEY env var is loaded into settings."""
-        from config.settings import Settings
-
-        monkeypatch.setenv("WAFER_API_KEY", "wafer-key")
-        settings = Settings()
-        assert settings.wafer_api_key == "wafer-key"
 
     def test_per_model_thinking_from_env(self, monkeypatch):
         """Per-model thinking env vars are loaded into settings."""
@@ -380,140 +332,6 @@ class TestSettings:
         assert settings.enable_model_thinking is True
 
 
-# --- NimSettings Validation Tests ---
-class TestNimSettingsValidBounds:
-    """Test that valid values within bounds are accepted."""
-
-    @pytest.mark.parametrize("top_k", [-1, 0, 1, 100])
-    def test_top_k_valid(self, top_k):
-        """top_k >= -1 should be accepted."""
-        s = NimSettings(top_k=top_k)
-        assert s.top_k == top_k
-
-    @pytest.mark.parametrize("temp", [0.0, 0.5, 1.0, 2.0])
-    def test_temperature_valid(self, temp):
-        s = NimSettings(temperature=temp)
-        assert s.temperature == temp
-
-    @pytest.mark.parametrize("top_p", [0.0, 0.5, 1.0])
-    def test_top_p_valid(self, top_p):
-        s = NimSettings(top_p=top_p)
-        assert s.top_p == top_p
-
-    def test_max_tokens_valid(self):
-        s = NimSettings(max_tokens=1)
-        assert s.max_tokens == 1
-
-    def test_min_tokens_valid(self):
-        s = NimSettings(min_tokens=0)
-        assert s.min_tokens == 0
-
-    @pytest.mark.parametrize("penalty", [-2.0, 0.0, 2.0])
-    def test_presence_penalty_valid(self, penalty):
-        s = NimSettings(presence_penalty=penalty)
-        assert s.presence_penalty == penalty
-
-    @pytest.mark.parametrize("penalty", [-2.0, 0.0, 2.0])
-    def test_frequency_penalty_valid(self, penalty):
-        s = NimSettings(frequency_penalty=penalty)
-        assert s.frequency_penalty == penalty
-
-    @pytest.mark.parametrize("min_p", [0.0, 0.5, 1.0])
-    def test_min_p_valid(self, min_p):
-        s = NimSettings(min_p=min_p)
-        assert s.min_p == min_p
-
-
-class TestNimSettingsInvalidBounds:
-    """Test that out-of-range values raise ValidationError."""
-
-    @pytest.mark.parametrize("top_k", [-2, -100])
-    def test_top_k_below_lower_bound(self, top_k):
-        with pytest.raises((ValidationError, ValueError)):
-            NimSettings(top_k=top_k)
-
-    def test_temperature_negative(self):
-        with pytest.raises(ValidationError):
-            NimSettings(temperature=-0.1)
-
-    @pytest.mark.parametrize("top_p", [-0.1, 1.1])
-    def test_top_p_out_of_range(self, top_p):
-        with pytest.raises(ValidationError):
-            NimSettings(top_p=top_p)
-
-    @pytest.mark.parametrize("penalty", [-2.1, 2.1])
-    def test_presence_penalty_out_of_range(self, penalty):
-        with pytest.raises(ValidationError):
-            NimSettings(presence_penalty=penalty)
-
-    @pytest.mark.parametrize("penalty", [-2.1, 2.1])
-    def test_frequency_penalty_out_of_range(self, penalty):
-        with pytest.raises(ValidationError):
-            NimSettings(frequency_penalty=penalty)
-
-    @pytest.mark.parametrize("min_p", [-0.1, 1.1])
-    def test_min_p_out_of_range(self, min_p):
-        with pytest.raises(ValidationError):
-            NimSettings(min_p=min_p)
-
-    @pytest.mark.parametrize("max_tokens", [0, -1])
-    def test_max_tokens_too_low(self, max_tokens):
-        with pytest.raises(ValidationError):
-            NimSettings(max_tokens=max_tokens)
-
-    def test_min_tokens_negative(self):
-        with pytest.raises(ValidationError):
-            NimSettings(min_tokens=-1)
-
-
-class TestNimSettingsValidators:
-    """Test custom field validators in NimSettings."""
-
-    def test_default_max_tokens_matches_shared_constant(self):
-        assert NimSettings().max_tokens == ANTHROPIC_DEFAULT_MAX_OUTPUT_TOKENS
-
-    @pytest.mark.parametrize(
-        "seed_val,expected",
-        [("", None), (None, None), ("42", 42), (42, 42)],
-        ids=["empty_str", "none", "str_42", "int_42"],
-    )
-    def test_parse_optional_int(self, seed_val, expected):
-        s = NimSettings(seed=seed_val)
-        assert s.seed == expected
-
-    @pytest.mark.parametrize(
-        "stop_val,expected",
-        [("", None), ("STOP", "STOP"), (None, None)],
-        ids=["empty_str", "valid", "none"],
-    )
-    def test_parse_optional_str_stop(self, stop_val, expected):
-        s = NimSettings(stop=stop_val)
-        assert s.stop == expected
-
-    @pytest.mark.parametrize(
-        "chat_template_val,expected",
-        [("", None), ("template", "template")],
-        ids=["empty_str", "valid"],
-    )
-    def test_parse_optional_str_chat_template(self, chat_template_val, expected):
-        s = NimSettings(chat_template=chat_template_val)
-        assert s.chat_template == expected
-
-    def test_extra_forbid_rejects_unknown_field(self):
-        """NimSettings with extra='forbid' rejects unknown fields."""
-        from typing import Any, cast
-
-        with pytest.raises(ValidationError):
-            NimSettings(**cast(Any, {"unknown_field": "value"}))
-
-    def test_enable_thinking_field_removed(self):
-        """NimSettings no longer accepts the removed thinking toggle."""
-        from typing import Any, cast
-
-        with pytest.raises(ValidationError):
-            NimSettings(**cast(Any, {"enable_thinking": True}))
-
-
 class TestSettingsOptionalStr:
     """Test Settings parse_optional_str validator."""
 
@@ -600,9 +418,9 @@ class TestPerModelMapping:
         """MODEL_OPUS env var is loaded."""
         from config.settings import Settings
 
-        monkeypatch.setenv("MODEL_OPUS", "open_router/deepseek/deepseek-r1")
+        monkeypatch.setenv("MODEL_OPUS", "opencode/deepseek-r1")
         s = Settings()
-        assert s.model_opus == "open_router/deepseek/deepseek-r1"
+        assert s.model_opus == "opencode/deepseek-r1"
 
     @pytest.mark.parametrize("env_var", ["MODEL_OPUS", "MODEL_SONNET", "MODEL_HAIKU"])
     def test_empty_model_override_env_is_unset(self, monkeypatch, env_var):
@@ -621,23 +439,18 @@ class TestPerModelMapping:
         "env_vars,expected_model,expected_haiku",
         [
             (
-                {"MODEL": "nvidia_nim/meta/llama3-70b-instruct"},
-                "nvidia_nim/meta/llama3-70b-instruct",
+                {"MODEL": "opencode/meta/llama3-70b-instruct"},
+                "opencode/meta/llama3-70b-instruct",
                 None,
             ),
             (
                 {
-                    "MODEL": "open_router/anthropic/claude-3-opus",
-                    "MODEL_HAIKU": "open_router/anthropic/claude-3-haiku",
+                    "MODEL": "opencode_go/anthropic/claude-3-opus",
+                    "MODEL_HAIKU": "opencode/anthropic/claude-3-haiku",
                 },
-                "open_router/anthropic/claude-3-opus",
-                "open_router/anthropic/claude-3-haiku",
+                "opencode_go/anthropic/claude-3-opus",
+                "opencode/anthropic/claude-3-haiku",
             ),
-            ({"MODEL": "deepseek/deepseek-chat"}, "deepseek/deepseek-chat", None),
-            ({"MODEL": "wafer/DeepSeek-V4-Pro"}, "wafer/DeepSeek-V4-Pro", None),
-            ({"MODEL": "lmstudio/qwen2.5-7b"}, "lmstudio/qwen2.5-7b", None),
-            ({"MODEL": "llamacpp/local-model"}, "llamacpp/local-model", None),
-            ({"MODEL": "ollama/llama3.1"}, "ollama/llama3.1", None),
         ],
     )
     def test_settings_models_from_env(
@@ -657,17 +470,17 @@ class TestPerModelMapping:
         """MODEL_SONNET env var is loaded."""
         from config.settings import Settings
 
-        monkeypatch.setenv("MODEL_SONNET", "nvidia_nim/meta/llama-3.3-70b-instruct")
+        monkeypatch.setenv("MODEL_SONNET", "opencode/meta/llama-3.3-70b-instruct")
         s = Settings()
-        assert s.model_sonnet == "nvidia_nim/meta/llama-3.3-70b-instruct"
+        assert s.model_sonnet == "opencode/meta/llama-3.3-70b-instruct"
 
     def test_model_haiku_from_env(self, monkeypatch):
         """MODEL_HAIKU env var is loaded."""
         from config.settings import Settings
 
-        monkeypatch.setenv("MODEL_HAIKU", "lmstudio/qwen2.5-7b")
+        monkeypatch.setenv("MODEL_HAIKU", "opencode/qwen2.5-7b")
         s = Settings()
-        assert s.model_haiku == "lmstudio/qwen2.5-7b"
+        assert s.model_haiku == "opencode/qwen2.5-7b"
 
     def test_model_opus_invalid_provider_raises(self, monkeypatch):
         """MODEL_OPUS with invalid provider prefix raises ValidationError."""
@@ -698,30 +511,24 @@ class TestPerModelMapping:
         from config.settings import Settings
 
         s = Settings()
-        s.model_opus = "open_router/deepseek/deepseek-r1"
-        assert (
-            s.resolve_model("claude-opus-4-20250514")
-            == "open_router/deepseek/deepseek-r1"
-        )
-        assert s.resolve_model("claude-3-opus") == "open_router/deepseek/deepseek-r1"
-        assert (
-            s.resolve_model("claude-3-opus-20240229")
-            == "open_router/deepseek/deepseek-r1"
-        )
+        s.model_opus = "opencode/deepseek-r1"
+        assert s.resolve_model("claude-opus-4-20250514") == "opencode/deepseek-r1"
+        assert s.resolve_model("claude-3-opus") == "opencode/deepseek-r1"
+        assert s.resolve_model("claude-3-opus-20240229") == "opencode/deepseek-r1"
 
     def test_resolve_model_sonnet_override(self):
         """resolve_model returns model_sonnet for sonnet model names."""
         from config.settings import Settings
 
         s = Settings()
-        s.model_sonnet = "nvidia_nim/meta/llama-3.3-70b-instruct"
+        s.model_sonnet = "opencode_go/meta/llama-3.3-70b-instruct"
         assert (
             s.resolve_model("claude-sonnet-4-20250514")
-            == "nvidia_nim/meta/llama-3.3-70b-instruct"
+            == "opencode_go/meta/llama-3.3-70b-instruct"
         )
         assert (
             s.resolve_model("claude-3-5-sonnet-20241022")
-            == "nvidia_nim/meta/llama-3.3-70b-instruct"
+            == "opencode_go/meta/llama-3.3-70b-instruct"
         )
 
     def test_resolve_model_haiku_override(self):
@@ -729,94 +536,55 @@ class TestPerModelMapping:
         from config.settings import Settings
 
         s = Settings()
-        s.model_haiku = "lmstudio/qwen2.5-7b"
-        assert s.resolve_model("claude-3-haiku-20240307") == "lmstudio/qwen2.5-7b"
-        assert s.resolve_model("claude-3-5-haiku-20241022") == "lmstudio/qwen2.5-7b"
-        assert s.resolve_model("claude-haiku-4-20250514") == "lmstudio/qwen2.5-7b"
+        s.model_haiku = "opencode/qwen2.5-7b"
+        assert s.resolve_model("claude-3-haiku-20240307") == "opencode/qwen2.5-7b"
+        assert s.resolve_model("claude-3-5-haiku-20241022") == "opencode/qwen2.5-7b"
+        assert s.resolve_model("claude-haiku-4-20250514") == "opencode/qwen2.5-7b"
 
     def test_resolve_model_fallback_when_override_not_set(self):
         """resolve_model falls back to MODEL when model override is None."""
         from config.settings import Settings
 
         s = Settings()
-        s.model = "nvidia_nim/fallback-model"
-        # No model overrides set
-        assert s.resolve_model("claude-opus-4-20250514") == "nvidia_nim/fallback-model"
-        assert (
-            s.resolve_model("claude-sonnet-4-20250514") == "nvidia_nim/fallback-model"
-        )
-        assert s.resolve_model("claude-3-haiku-20240307") == "nvidia_nim/fallback-model"
+        s.model = "opencode/fallback-model"
+        assert s.resolve_model("claude-opus-4-20250514") == "opencode/fallback-model"
+        assert s.resolve_model("claude-sonnet-4-20250514") == "opencode/fallback-model"
+        assert s.resolve_model("claude-3-haiku-20240307") == "opencode/fallback-model"
 
     def test_resolve_model_unknown_model_falls_back(self):
         """resolve_model falls back to MODEL for unrecognized model names."""
         from config.settings import Settings
 
         s = Settings()
-        s.model = "nvidia_nim/fallback-model"
-        s.model_opus = "open_router/opus-model"
-        assert s.resolve_model("claude-2.1") == "nvidia_nim/fallback-model"
-        assert s.resolve_model("some-unknown-model") == "nvidia_nim/fallback-model"
+        s.model = "opencode/fallback-model"
+        s.model_opus = "opencode_go/opus-model"
+        assert s.resolve_model("claude-2.1") == "opencode/fallback-model"
+        assert s.resolve_model("some-unknown-model") == "opencode/fallback-model"
 
     def test_resolve_model_case_insensitive(self):
         """Model classification is case-insensitive."""
         from config.settings import Settings
 
         s = Settings()
-        s.model_opus = "open_router/opus-model"
-        assert s.resolve_model("Claude-OPUS-4") == "open_router/opus-model"
+        s.model_opus = "opencode_go/opus-model"
+        assert s.resolve_model("Claude-OPUS-4") == "opencode_go/opus-model"
 
     def test_parse_provider_type(self):
         """parse_provider_type extracts provider from model string."""
         from config.settings import Settings
 
-        assert Settings.parse_provider_type("nvidia_nim/meta/llama") == "nvidia_nim"
-        assert Settings.parse_provider_type("open_router/deepseek/r1") == "open_router"
-        assert (
-            Settings.parse_provider_type("mistral/devstral-small-latest") == "mistral"
-        )
-        assert (
-            Settings.parse_provider_type("mistral_codestral/codestral-latest")
-            == "mistral_codestral"
-        )
-        assert Settings.parse_provider_type("deepseek/deepseek-chat") == "deepseek"
-        assert Settings.parse_provider_type("lmstudio/qwen") == "lmstudio"
-        assert Settings.parse_provider_type("llamacpp/model") == "llamacpp"
-        assert Settings.parse_provider_type("ollama/llama3.1") == "ollama"
-        assert Settings.parse_provider_type("wafer/DeepSeek-V4-Pro") == "wafer"
-        assert (
-            Settings.parse_provider_type("gemini/models/gemini-3.1-flash-lite")
-            == "gemini"
-        )
-        assert Settings.parse_provider_type("groq/llama-3.3-70b-versatile") == "groq"
-        assert Settings.parse_provider_type("cerebras/llama3.1-8b") == "cerebras"
+        assert Settings.parse_provider_type("opencode/meta/llama") == "opencode"
+        assert Settings.parse_provider_type("opencode_go/deepseek/r1") == "opencode_go"
 
     def test_parse_model_name(self):
         """parse_model_name extracts model name from model string."""
         from config.settings import Settings
 
-        assert Settings.parse_model_name("nvidia_nim/meta/llama") == "meta/llama"
+        assert Settings.parse_model_name("opencode/meta/llama") == "meta/llama"
         assert (
-            Settings.parse_model_name("mistral/devstral-small-latest")
-            == "devstral-small-latest"
-        )
-        assert (
-            Settings.parse_model_name("mistral_codestral/codestral-latest")
+            Settings.parse_model_name("opencode_go/codestral-latest")
             == "codestral-latest"
         )
-        assert Settings.parse_model_name("deepseek/deepseek-chat") == "deepseek-chat"
-        assert Settings.parse_model_name("lmstudio/qwen") == "qwen"
-        assert Settings.parse_model_name("llamacpp/model") == "model"
-        assert Settings.parse_model_name("ollama/llama3.1") == "llama3.1"
-        assert Settings.parse_model_name("wafer/DeepSeek-V4-Pro") == "DeepSeek-V4-Pro"
-        assert (
-            Settings.parse_model_name("gemini/models/gemini-3.1-flash-lite")
-            == "models/gemini-3.1-flash-lite"
-        )
-        assert (
-            Settings.parse_model_name("groq/llama-3.3-70b-versatile")
-            == "llama-3.3-70b-versatile"
-        )
-        assert Settings.parse_model_name("cerebras/llama3.1-8b") == "llama3.1-8b"
 
     def test_configured_chat_model_refs_collects_unique_models_with_sources(
         self, monkeypatch
@@ -824,23 +592,21 @@ class TestPerModelMapping:
         """Startup validation model collection is limited to configured chat refs."""
         from config.settings import Settings
 
-        monkeypatch.setenv("FCC_SMOKE_MODEL_NVIDIA_NIM", "nvidia_nim/smoke")
-        monkeypatch.setenv("WHISPER_MODEL", "openai/whisper-large-v3")
         s = Settings()
-        s.model = "nvidia_nim/fallback"
-        s.model_opus = "open_router/anthropic/claude-opus"
-        s.model_sonnet = "nvidia_nim/fallback"
+        s.model = "opencode/fallback"
+        s.model_opus = "opencode_go/anthropic/claude-opus"
+        s.model_sonnet = "opencode/fallback"
         s.model_haiku = None
 
         refs = s.configured_chat_model_refs()
 
         assert [ref.model_ref for ref in refs] == [
-            "nvidia_nim/fallback",
-            "open_router/anthropic/claude-opus",
+            "opencode/fallback",
+            "opencode_go/anthropic/claude-opus",
         ]
-        assert refs[0].provider_id == "nvidia_nim"
+        assert refs[0].provider_id == "opencode"
         assert refs[0].model_id == "fallback"
         assert refs[0].sources == ("MODEL", "MODEL_SONNET")
-        assert refs[1].provider_id == "open_router"
+        assert refs[1].provider_id == "opencode_go"
         assert refs[1].model_id == "anthropic/claude-opus"
         assert refs[1].sources == ("MODEL_OPUS",)

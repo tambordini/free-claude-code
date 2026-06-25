@@ -80,11 +80,11 @@ def test_config_does_not_import_non_config_packages() -> None:
     assert offenders == []
 
 
-_MESSAGING_ALLOWED_PROVIDER_MODULES = frozenset({"providers.nvidia_nim.voice"})
+_MESSAGING_ALLOWED_PROVIDER_MODULES: frozenset[str] = frozenset()
 
 
 def test_messaging_does_not_import_disallowed_modules() -> None:
-    """Messaging is wired by ``api.runtime``; narrow provider imports only for NIM voice ASR."""
+    """Messaging is wired by ``api.runtime``; no direct provider imports are needed."""
     repo_root = Path(__file__).resolve().parents[2]
     offenders: list[str] = []
     for path in (repo_root / "messaging").rglob("*.py"):

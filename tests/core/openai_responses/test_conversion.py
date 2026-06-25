@@ -11,7 +11,7 @@ _CONVERSION_ERROR = OpenAIResponsesAdapter.ConversionError
 def test_responses_string_input_converts_to_anthropic_message() -> None:
     payload = _ADAPTER.to_anthropic_payload(
         {
-            "model": "nvidia_nim/test-model",
+            "model": "opencode/test-model",
             "instructions": "System instructions",
             "input": "Hello",
             "max_output_tokens": 64,
@@ -21,7 +21,7 @@ def test_responses_string_input_converts_to_anthropic_message() -> None:
         }
     )
 
-    assert payload["model"] == "nvidia_nim/test-model"
+    assert payload["model"] == "opencode/test-model"
     assert payload["system"] == "System instructions"
     assert payload["messages"] == [{"role": "user", "content": "Hello"}]
     assert payload["max_tokens"] == 64
@@ -33,7 +33,7 @@ def test_responses_string_input_converts_to_anthropic_message() -> None:
 def test_responses_messages_tools_and_tool_results_convert() -> None:
     payload = _ADAPTER.to_anthropic_payload(
         {
-            "model": "deepseek/deepseek-chat",
+            "model": "opencode_go/deepseek-chat",
             "input": [
                 {
                     "type": "message",
@@ -113,7 +113,7 @@ def test_responses_messages_tools_and_tool_results_convert() -> None:
 def test_responses_tool_choice_none_disables_forwarded_tools() -> None:
     payload = _ADAPTER.to_anthropic_payload(
         {
-            "model": "deepseek/deepseek-chat",
+            "model": "opencode_go/deepseek-chat",
             "input": "Reply without tools",
             "tools": [
                 {
@@ -136,7 +136,7 @@ def test_responses_tool_choice_none_disables_forwarded_tools() -> None:
 def test_responses_namespace_tools_flatten_for_anthropic() -> None:
     payload = _ADAPTER.to_anthropic_payload(
         {
-            "model": "nvidia_nim/test-model",
+            "model": "opencode/test-model",
             "input": "Use JS",
             "tools": [
                 {
@@ -182,7 +182,7 @@ def test_responses_namespace_tools_flatten_for_anthropic() -> None:
 def test_responses_namespaced_tool_choice_type_tool_flattens_for_anthropic() -> None:
     payload = _ADAPTER.to_anthropic_payload(
         {
-            "model": "nvidia_nim/test-model",
+            "model": "opencode/test-model",
             "input": "Use JS",
             "tools": [
                 {
@@ -211,7 +211,7 @@ def test_responses_namespaced_tool_choice_type_tool_flattens_for_anthropic() -> 
 def test_responses_custom_tool_converts_to_anthropic_string_tool() -> None:
     payload = _ADAPTER.to_anthropic_payload(
         {
-            "model": "nvidia_nim/test-model",
+            "model": "opencode/test-model",
             "input": "Use apply_patch",
             "tools": [
                 {
@@ -254,7 +254,7 @@ def test_responses_custom_tool_converts_to_anthropic_string_tool() -> None:
 def test_responses_namespaced_custom_tool_flattens_for_anthropic() -> None:
     payload = _ADAPTER.to_anthropic_payload(
         {
-            "model": "nvidia_nim/test-model",
+            "model": "opencode/test-model",
             "input": "Use shell",
             "tools": [
                 {
@@ -288,7 +288,7 @@ def test_responses_namespaced_custom_tool_flattens_for_anthropic() -> None:
 def test_responses_passive_codex_built_in_tools_are_ignored() -> None:
     payload = _ADAPTER.to_anthropic_payload(
         {
-            "model": "nvidia_nim/test-model",
+            "model": "opencode/test-model",
             "input": "Hello",
             "tools": [
                 {"type": "web_search", "external_web_access": True},
@@ -311,7 +311,7 @@ def test_responses_passive_codex_built_in_tools_are_ignored() -> None:
 def test_responses_namespaced_prior_function_call_flattens_tool_use_name() -> None:
     payload = _ADAPTER.to_anthropic_payload(
         {
-            "model": "nvidia_nim/test-model",
+            "model": "opencode/test-model",
             "input": [
                 {
                     "type": "function_call",
@@ -335,7 +335,7 @@ def test_responses_namespaced_prior_function_call_flattens_tool_use_name() -> No
 def test_responses_prior_custom_tool_call_flattens_tool_use_name() -> None:
     payload = _ADAPTER.to_anthropic_payload(
         {
-            "model": "nvidia_nim/test-model",
+            "model": "opencode/test-model",
             "input": [
                 {
                     "type": "custom_tool_call",
@@ -382,7 +382,7 @@ def test_responses_unsupported_tool_type_is_clear() -> None:
     with pytest.raises(_CONVERSION_ERROR, match="Unsupported Responses tool type"):
         _ADAPTER.to_anthropic_payload(
             {
-                "model": "nvidia_nim/test-model",
+                "model": "opencode/test-model",
                 "input": "Hello",
                 "tools": [{"type": "web_search_preview"}],
             }
@@ -393,7 +393,7 @@ def test_responses_invalid_function_arguments_are_rejected() -> None:
     with pytest.raises(_CONVERSION_ERROR, match="invalid JSON"):
         _ADAPTER.to_anthropic_payload(
             {
-                "model": "nvidia_nim/test-model",
+                "model": "opencode/test-model",
                 "input": [
                     {
                         "type": "function_call",

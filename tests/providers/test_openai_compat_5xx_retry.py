@@ -6,11 +6,10 @@ import openai
 import pytest
 from httpx import Request, Response
 
-from config.nim import NimSettings
 from providers.base import ProviderConfig
-from providers.nvidia_nim import NvidiaNimProvider
+from providers.opencode import OpenCodeProvider
 from providers.rate_limit import GlobalRateLimiter
-from tests.providers.test_nvidia_nim import MockRequest
+from tests.providers.test_anthropic_messages import MockRequest
 
 
 def _internal_5xx(code: int) -> openai.InternalServerError:
@@ -23,7 +22,7 @@ def _internal_5xx(code: int) -> openai.InternalServerError:
 
 @pytest.mark.parametrize("status_code", [500, 502, 503, 504])
 @pytest.mark.asyncio
-async def test_nim_stream_retries_on_openai_5xx_then_streams(status_code):
+async def test_opencode_stream_retries_on_openai_5xx_then_streams(status_code):
     GlobalRateLimiter.reset_instance()
     try:
         config = ProviderConfig(
@@ -35,7 +34,7 @@ async def test_nim_stream_retries_on_openai_5xx_then_streams(status_code):
             http_write_timeout=15.0,
             http_connect_timeout=5.0,
         )
-        provider = NvidiaNimProvider(config, nim_settings=NimSettings())
+        provider = OpenCodeProvider(config)
         req = MockRequest()
 
         mock_chunk = MagicMock()
@@ -77,7 +76,7 @@ async def test_nim_stream_retries_on_openai_5xx_then_streams(status_code):
     ],
 )
 @pytest.mark.asyncio
-async def test_nim_stream_openai_5xx_exhausted_emits_user_message(
+async def test_opencode_stream_openai_5xx_exhausted_emits_user_message(
     status_code,
     expect_substr,
 ):
@@ -92,7 +91,7 @@ async def test_nim_stream_openai_5xx_exhausted_emits_user_message(
             http_write_timeout=15.0,
             http_connect_timeout=5.0,
         )
-        provider = NvidiaNimProvider(config, nim_settings=NimSettings())
+        provider = OpenCodeProvider(config)
         req = MockRequest()
 
         with (

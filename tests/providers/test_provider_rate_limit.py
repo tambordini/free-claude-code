@@ -470,15 +470,15 @@ class TestProviderRateLimiter:
     async def test_scoped_instances_are_isolated(self):
         """Provider-scoped limiters do not share reactive block state."""
         GlobalRateLimiter.reset_instance()
-        nim = GlobalRateLimiter.get_scoped_instance(
-            "nvidia_nim", rate_limit=10, rate_window=60
+        oc = GlobalRateLimiter.get_scoped_instance(
+            "opencode", rate_limit=10, rate_window=60
         )
-        openrouter = GlobalRateLimiter.get_scoped_instance(
-            "open_router", rate_limit=20, rate_window=30
+        oc_go = GlobalRateLimiter.get_scoped_instance(
+            "opencode_go", rate_limit=20, rate_window=30
         )
 
-        assert nim is not openrouter
-        nim.set_blocked(1.0)
+        assert oc is not oc_go
+        oc.set_blocked(1.0)
 
-        assert nim.is_blocked() is True
-        assert openrouter.is_blocked() is False
+        assert oc.is_blocked() is True
+        assert oc_go.is_blocked() is False

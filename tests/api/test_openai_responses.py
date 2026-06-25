@@ -53,7 +53,7 @@ def test_create_response_stream_routes_through_provider(
     response = client.post(
         "/v1/responses",
         json={
-            "model": "nvidia_nim/test-model",
+            "model": "opencode/test-model",
             "input": "Hello",
             "max_output_tokens": 32,
         },
@@ -89,7 +89,7 @@ def test_create_response_stream_bypasses_local_message_optimizations() -> None:
         response = client.post(
             "/v1/responses",
             json={
-                "model": "nvidia_nim/test-model",
+                "model": "opencode/test-model",
                 "input": "quota check",
             },
         )
@@ -108,7 +108,7 @@ def test_create_response_stream_false_returns_openai_error(
     response = client.post(
         "/v1/responses",
         json={
-            "model": "nvidia_nim/test-model",
+            "model": "opencode/test-model",
             "input": "Hello",
             "stream": False,
         },
@@ -131,7 +131,7 @@ def test_create_response_stream_preserves_interleaved_reasoning_order() -> None:
         response = client.post(
             "/v1/responses",
             json={
-                "model": "nvidia_nim/test-model",
+                "model": "opencode/test-model",
                 "input": "Use reasoning and tools",
                 "stream": True,
                 "tools": [
@@ -172,7 +172,7 @@ def test_create_response_tool_stream_emits_function_call() -> None:
         response = client.post(
             "/v1/responses",
             json={
-                "model": "nvidia_nim/test-model",
+                "model": "opencode/test-model",
                 "input": "Use echo",
                 "stream": True,
                 "tools": [
@@ -204,7 +204,7 @@ def test_create_response_accepts_codex_namespace_tool_request() -> None:
         response = client.post(
             "/v1/responses",
             json={
-                "model": "nvidia_nim/test-model",
+                "model": "opencode/test-model",
                 "input": "Use JS",
                 "stream": True,
                 "tools": [
@@ -252,7 +252,7 @@ def test_create_response_accepts_codex_custom_tool_request() -> None:
         response = client.post(
             "/v1/responses",
             json={
-                "model": "nvidia_nim/test-model",
+                "model": "opencode/test-model",
                 "input": "Use apply_patch",
                 "stream": True,
                 "tools": [
@@ -303,7 +303,7 @@ def test_create_response_stream_provider_error_returns_response_failed() -> None
         response = client.post(
             "/v1/responses",
             json={
-                "model": "nvidia_nim/test-model",
+                "model": "opencode/test-model",
                 "input": "Hello",
                 "stream": True,
             },
@@ -333,7 +333,7 @@ def test_create_response_replays_prior_reasoning_as_reasoning_content() -> None:
         response = client.post(
             "/v1/responses",
             json={
-                "model": "nvidia_nim/test-model",
+                "model": "opencode/test-model",
                 "input": [
                     {
                         "id": "rs_1",
@@ -402,7 +402,7 @@ def test_create_response_maps_reasoning_effort_to_thinking_request(
         response = client.post(
             "/v1/responses",
             json={
-                "model": "nvidia_nim/test-model",
+                "model": "opencode/test-model",
                 "input": "Hello",
                 "stream": True,
                 "reasoning": reasoning,
@@ -425,7 +425,7 @@ def test_create_response_maps_redacted_thinking_to_encrypted_reasoning() -> None
         response = client.post(
             "/v1/responses",
             json={
-                "model": "nvidia_nim/test-model",
+                "model": "opencode/test-model",
                 "input": "Continue",
                 "stream": True,
             },
@@ -453,7 +453,7 @@ def test_create_response_unsupported_tool_returns_openai_error(
     response = client.post(
         "/v1/responses",
         json={
-            "model": "nvidia_nim/test-model",
+            "model": "opencode/test-model",
             "input": "Hello",
             "tools": [{"type": "web_search_preview"}],
         },
