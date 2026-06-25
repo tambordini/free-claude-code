@@ -19,12 +19,12 @@ pytestmark = [pytest.mark.live]
 def test_env_precedence_e2e(smoke_config: SmokeConfig, tmp_path) -> None:
     env_file = tmp_path / "product.env"
     env_file.write_text(
-        'MODEL="open_router/test/model"\nANTHROPIC_AUTH_TOKEN="dotenv-token"\n',
+        'MODEL="opencode/test/model"\nANTHROPIC_AUTH_TOKEN="dotenv-token"\n',
         encoding="utf-8",
     )
     env = os.environ.copy()
     env["FCC_ENV_FILE"] = str(env_file)
-    env["MODEL"] = "nvidia_nim/process-model"
+    env["MODEL"] = "opencode/process-model"
     env["ANTHROPIC_AUTH_TOKEN"] = "process-token"
     script = (
         "from config.settings import get_settings; "
@@ -42,7 +42,7 @@ def test_env_precedence_e2e(smoke_config: SmokeConfig, tmp_path) -> None:
     )
     assert result.returncode == 0, result.stderr
     lines = result.stdout.splitlines()
-    assert lines == ["nvidia_nim/process-model", "dotenv-token"]
+    assert lines == ["opencode/process-model", "dotenv-token"]
 
 
 @pytest.mark.smoke_target("config")
@@ -100,9 +100,9 @@ def test_per_model_thinking_config_e2e(smoke_config: SmokeConfig, tmp_path) -> N
 def test_proxy_timeout_config_e2e(smoke_config: SmokeConfig, tmp_path) -> None:
     env_file = tmp_path / "timeouts.env"
     env_file.write_text(
-        'MODEL="open_router/test/model"\n'
-        'OPENROUTER_API_KEY="key"\n'
-        'OPENROUTER_PROXY="socks5://127.0.0.1:9999"\n'
+        'MODEL="opencode/test/model"\n'
+        'OPENCODE_API_KEY="key"\n'
+        'OPENCODE_PROXY="socks5://127.0.0.1:9999"\n'
         'HTTP_READ_TIMEOUT="321"\n'
         'HTTP_CONNECT_TIMEOUT="7"\n'
         'HTTP_WRITE_TIMEOUT="8"\n',
@@ -113,7 +113,7 @@ def test_proxy_timeout_config_e2e(smoke_config: SmokeConfig, tmp_path) -> None:
     script = (
         "from config.settings import Settings; "
         "from providers.registry import PROVIDER_DESCRIPTORS, build_provider_config; "
-        "s=Settings(); c=build_provider_config(PROVIDER_DESCRIPTORS['open_router'], s); "
+        "s=Settings(); c=build_provider_config(PROVIDER_DESCRIPTORS['opencode'], s); "
         "print(c.proxy); print(c.http_read_timeout); "
         "print(c.http_connect_timeout); print(c.http_write_timeout)"
     )
