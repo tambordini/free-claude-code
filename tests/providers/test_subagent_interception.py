@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from core.anthropic import ContentBlockManager
+from core.anthropic import StreamBlockLedger
 from providers.base import ProviderConfig
 from providers.opencode import OpenCodeProvider
 from providers.transports.openai_chat.tool_calls import OpenAIToolCallAssembler
@@ -15,12 +15,12 @@ async def test_task_tool_interception():
     config = ProviderConfig(api_key="test")
     provider = OpenCodeProvider(config)
 
-    # Mock request and sse builder with real ContentBlockManager
+    # Mock request and stream ledger with real StreamBlockLedger
     request = MagicMock()
     request.model = "test-model"
 
     sse = MagicMock()
-    sse.blocks = ContentBlockManager()
+    sse.blocks = StreamBlockLedger()
 
     # Tool call data (Task tool)
     tc = {
