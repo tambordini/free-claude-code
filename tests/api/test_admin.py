@@ -4,7 +4,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from api.admin_config import MASKED_SECRET
+from api.admin_config.values import MASKED_SECRET
 from api.admin_urls import local_admin_url
 from api.app import create_app
 from config.settings import Settings

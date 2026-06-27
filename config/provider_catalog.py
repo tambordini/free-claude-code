@@ -21,6 +21,7 @@ class ProviderDescriptor:
     """Metadata for building :class:`~providers.base.ProviderConfig` and factory wiring."""
 
     provider_id: str
+    display_name: str
     transport_type: TransportType
     capabilities: tuple[str, ...]
     credential_env: str | None = None
@@ -33,8 +34,10 @@ class ProviderDescriptor:
 
 
 PROVIDER_CATALOG: dict[str, ProviderDescriptor] = {
+
     "opencode": ProviderDescriptor(
         provider_id="opencode",
+        display_name="OpenCode Zen",
         transport_type="openai_chat",
         credential_env="OPENCODE_API_KEY",
         credential_url="https://opencode.ai/auth",
@@ -45,6 +48,7 @@ PROVIDER_CATALOG: dict[str, ProviderDescriptor] = {
     ),
     "opencode_go": ProviderDescriptor(
         provider_id="opencode_go",
+        display_name="OpenCode Go",
         transport_type="openai_chat",
         credential_env="OPENCODE_API_KEY",
         credential_url="https://opencode.ai/auth",
@@ -53,6 +57,7 @@ PROVIDER_CATALOG: dict[str, ProviderDescriptor] = {
         proxy_attr="opencode_go_proxy",
         capabilities=("chat", "streaming", "tools", "thinking", "rate_limit"),
     ),
+
 }
 
 SUPPORTED_PROVIDER_IDS: tuple[str, ...] = tuple(PROVIDER_CATALOG.keys())

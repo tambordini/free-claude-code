@@ -59,6 +59,7 @@ function providerName(providerId) {
   );
 }
 
+
 function statusClass(status) {
   if (["configured", "reachable", "running"].includes(status)) return "ok";
   if (["missing_key", "missing_url", "unknown"].includes(status)) return "warn";
@@ -109,6 +110,7 @@ function adminUi() {
             f.type === "secret" && f.configured ? MASKED_SECRET : f.value || "";
           values[f.key] = val;
           originals[f.key] = val;
+
         });
         this.fieldValues = values;
         this.originals = originals;
