@@ -18,6 +18,17 @@ from providers.zai import ZaiProvider
 
 def _make_settings(**overrides):
     mock = MagicMock()
+    mock.model = "nvidia_nim/meta/llama3"
+    mock.model_opus = None
+    mock.model_sonnet = None
+    mock.model_haiku = None
+    mock.nvidia_nim_api_key = "test_key"
+    mock.open_router_api_key = "test_openrouter_key"
+    mock.mistral_api_key = "test_mistral_key"
+    mock.codestral_api_key = "test_codestral_key"
+    mock.deepseek_api_key = "test_deepseek_key"
+    mock.wafer_api_key = "test_wafer_key"
+
     mock.opencode_api_key = "test_opencode_key"
     mock.opencode_proxy = ""
     mock.opencode_go_proxy = ""
