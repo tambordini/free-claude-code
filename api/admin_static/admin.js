@@ -37,32 +37,6 @@ function sourceLabel(source) {
     : source;
 }
 
-function providerName(providerId) {
-  const names = {
-    nvidia_nim: "NVIDIA NIM",
-    open_router: "OpenRouter",
-    mistral_codestral: "Mistral Codestral",
-    deepseek: "DeepSeek",
-    lmstudio: "LM Studio",
-    llamacpp: "llama.cpp",
-    ollama: "Ollama",
-    kimi: "Kimi",
-    wafer: "Wafer",
-    opencode: "OpenCode Zen",
-    opencode_go: "OpenCode Go",
-    zai: "Z.ai",
-  };
-  return (
-    names[providerId] ||
-    providerId
-      .split("_")
-      .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
-      .join(" ")
-  );
-}
-
-
-
 function statusClass(status) {
   if (["configured", "reachable", "running"].includes(status)) return "ok";
   if (["missing_key", "missing_url", "unknown"].includes(status)) return "warn";
@@ -202,7 +176,6 @@ function adminUi() {
       return parts.join(" ");
     },
 
-    providerName,
     statusClass,
 
 

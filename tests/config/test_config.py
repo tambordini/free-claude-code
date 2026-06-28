@@ -14,9 +14,7 @@ from config.model_refs import (
     parse_model_name,
     parse_provider_type,
 )
-from config.nim import NimSettings
 from config.paths import default_claude_workspace_path
-
 
 
 class TestSettings:
@@ -565,7 +563,6 @@ class TestPerModelMapping:
             == "open_router/deepseek/deepseek-r1"
         )
 
-
     def test_resolve_model_sonnet_override(self):
         """ModelRouter returns model_sonnet for sonnet model names."""
         from api.model_router import ModelRouter
@@ -581,7 +578,6 @@ class TestPerModelMapping:
         assert (
             router.resolve("claude-3-5-sonnet-20241022").provider_model_ref
             == "nvidia_nim/meta/llama-3.3-70b-instruct"
-
         )
 
     def test_resolve_model_haiku_override(self):
@@ -605,7 +601,6 @@ class TestPerModelMapping:
             == "lmstudio/qwen2.5-7b"
         )
 
-
     def test_resolve_model_fallback_when_override_not_set(self):
         """ModelRouter falls back to MODEL when model override is None."""
         from api.model_router import ModelRouter
@@ -627,7 +622,6 @@ class TestPerModelMapping:
             == "nvidia_nim/fallback-model"
         )
 
-
     def test_resolve_model_unknown_model_falls_back(self):
         """ModelRouter falls back to MODEL for unrecognized model names."""
         from api.model_router import ModelRouter
@@ -644,7 +638,6 @@ class TestPerModelMapping:
             "nvidia_nim/fallback-model"
         )
 
-
     def test_resolve_model_case_insensitive(self):
         """Model classification is case-insensitive."""
         from api.model_router import ModelRouter
@@ -656,7 +649,6 @@ class TestPerModelMapping:
             ModelRouter(s).resolve("Claude-OPUS-4").provider_model_ref
             == "open_router/opus-model"
         )
-
 
     def test_parse_provider_type(self):
         """parse_provider_type extracts provider from model string."""
@@ -676,7 +668,6 @@ class TestPerModelMapping:
         assert parse_provider_type("gemini/models/gemini-3.1-flash-lite") == "gemini"
         assert parse_provider_type("groq/llama-3.3-70b-versatile") == "groq"
         assert parse_provider_type("cerebras/llama3.1-8b") == "cerebras"
-
 
     def test_parse_model_name(self):
         """parse_model_name extracts model name from model string."""
@@ -702,7 +693,6 @@ class TestPerModelMapping:
             == "llama-3.3-70b-versatile"
         )
         assert parse_model_name("cerebras/llama3.1-8b") == "llama3.1-8b"
-
 
     def test_configured_chat_model_refs_collects_unique_models_with_sources(
         self, monkeypatch

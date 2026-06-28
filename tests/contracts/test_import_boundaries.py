@@ -122,7 +122,6 @@ def test_settings_stays_schema_only() -> None:
 _MESSAGING_ALLOWED_PROVIDER_MODULES = frozenset({"providers.nvidia_nim.voice"})
 
 
-
 def test_messaging_does_not_import_disallowed_modules() -> None:
     """Messaging is wired by ``api.runtime``; no direct provider imports are needed."""
     repo_root = Path(__file__).resolve().parents[2]
@@ -412,7 +411,8 @@ def test_admin_config_uses_package_owners_and_catalog_manifest() -> None:
     assert "PROVIDER_CATALOG" in provider_manifest_text
     admin_js = (api_root / "admin_static" / "admin.js").read_text(encoding="utf-8")
     assert "function providerName" not in admin_js
-    assert "display_name || provider.provider_id" in admin_js
+    admin_html = (api_root / "admin_static" / "index.html").read_text(encoding="utf-8")
+    assert "p.display_name || p.provider_id" in admin_html
 
     entrypoints_imports = set(
         _imports_from(repo_root / "cli" / "entrypoints.py", repo_root)

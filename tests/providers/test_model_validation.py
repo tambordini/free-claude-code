@@ -12,12 +12,7 @@ from config.settings import Settings
 from providers.base import BaseProvider, ProviderConfig
 from providers.exceptions import ModelListResponseError, ServiceUnavailableError
 from providers.model_listing import ProviderModelInfo
-from providers.nvidia_nim import NvidiaNimProvider
-from providers.ollama import OllamaProvider
-from providers.open_router import OpenRouterProvider
 from providers.runtime import ProviderRuntime
-from providers.wafer import WaferProvider
-
 
 
 def _settings(
@@ -103,33 +98,30 @@ class FakeProvider(BaseProvider):
 
 @pytest.mark.asyncio
 async def test_runtime_validation_succeeds_for_all_configured_models() -> None:
-    settings = _settings(model_opus="open_router/anthropic/claude-opus")
+    settings = _settings(model_opus="opencode_go/deepseek-v4-flash-go")
     runtime = ProviderRuntime(
         settings,
         {
-            "nvidia_nim": FakeProvider(frozenset({"nim-model"})),
-            "open_router": FakeProvider(frozenset({"anthropic/claude-opus"})),
+            "opencode": FakeProvider(frozenset({"deepseek-v4-flash-free"})),
+            "opencode_go": FakeProvider(frozenset({"deepseek-v4-flash-go"})),
         },
     )
-
 
     await runtime.validate_configured_models()
 
     assert runtime.cached_model_ids() == {
-        "nvidia_nim": frozenset({"nim-model"}),
-        "open_router": frozenset({"anthropic/claude-opus"}),
-
+        "opencode": frozenset({"deepseek-v4-flash-free"}),
+        "opencode_go": frozenset({"deepseek-v4-flash-go"}),
     }
 
 
 @pytest.mark.asyncio
 async def test_runtime_validation_reports_missing_model_with_sources() -> None:
-    settings = _settings(model_sonnet="nvidia_nim/nim-model")
+    settings = _settings(model_sonnet="opencode/nim-model")
     runtime = ProviderRuntime(
         settings,
-        {"nvidia_nim": FakeProvider(frozenset({"different-model"}))},
+        {"opencode": FakeProvider(frozenset({"different-model"}))},
     )
-
 
     with pytest.raises(ServiceUnavailableError) as exc_info:
         await runtime.validate_configured_models()
@@ -137,13 +129,13 @@ async def test_runtime_validation_reports_missing_model_with_sources() -> None:
     message = exc_info.value.message
     assert "sources=MODEL_SONNET" in message
     assert "provider=opencode" in message
-    assert "model=requested-model" in message
+    assert "model=nim-model" in message
     assert "problem=missing model" in message
 
 
 @pytest.mark.asyncio
 async def test_runtime_validation_aggregates_multiple_failures() -> None:
-    settings = _settings(model_opus="open_router/anthropic/claude-opus")
+    settings = _settings(model_opus="opencode_go/deepseek-v4-flash-go")
     runtime = ProviderRuntime(
         settings,
         {
@@ -154,7 +146,6 @@ async def test_runtime_validation_aggregates_multiple_failures() -> None:
         },
     )
 
-
     with pytest.raises(ServiceUnavailableError) as exc_info:
         await runtime.validate_configured_models()
 
@@ -164,12 +155,11 @@ async def test_runtime_validation_aggregates_multiple_failures() -> None:
 
 @pytest.mark.asyncio
 async def test_runtime_validation_queries_providers_concurrently() -> None:
-    nim_started = asyncio.Event()
-    router_started = asyncio.Event()
-    settings = _settings(model_opus="open_router/anthropic/claude-opus")
+    opencode_started = asyncio.Event()
+    opencode_go_started = asyncio.Event()
+    settings = _settings(model_opus="opencode_go/deepseek-v4-flash-go")
     runtime = ProviderRuntime(
         settings,
-
         {
             "opencode": FakeProvider(
                 frozenset({"deepseek-v4-flash-free"}),
@@ -184,7 +174,6 @@ async def test_runtime_validation_queries_providers_concurrently() -> None:
         },
     )
 
-
     await asyncio.wait_for(runtime.validate_configured_models(), timeout=1.0)
 
 
@@ -193,51 +182,44 @@ async def test_runtime_refresh_model_list_cache_uses_configured_remote_keys_and_
     None
 ):
     settings = _settings(
-        model="lmstudio/local-qwen",
-        open_router_api_key="open-router-key",
+        model="opencode/deepseek-v4-flash-free",
     )
     runtime = ProviderRuntime(
         settings,
         {
-            "open_router": FakeProvider(frozenset({"anthropic/claude-sonnet"})),
-            "lmstudio": FakeProvider(frozenset({"local-qwen"})),
-            "ollama": FakeProvider(frozenset({"llama3.1"})),
+            "opencode": FakeProvider(frozenset({"deepseek-v4-flash-free"})),
+            "opencode_go": FakeProvider(frozenset({"deepseek-v4-flash-go"})),
         },
     )
-
 
     await runtime.refresh_model_list_cache()
 
     assert runtime.cached_model_ids() == {
-        "open_router": frozenset({"anthropic/claude-sonnet"}),
-        "lmstudio": frozenset({"local-qwen"}),
-
+        "opencode": frozenset({"deepseek-v4-flash-free"}),
+        "opencode_go": frozenset({"deepseek-v4-flash-go"}),
     }
 
 
 @pytest.mark.asyncio
 async def test_runtime_refresh_model_list_cache_keeps_prior_cache_on_failure() -> None:
     settings = _settings(
-        model="nvidia_nim/cached-model",
-        nvidia_nim_api_key="nim-key",
+        model="opencode/deepseek-v4-flash-free",
     )
     runtime = ProviderRuntime(
         settings,
-        {"nvidia_nim": FakeProvider(error=RuntimeError("upstream down"))},
+        {"opencode": FakeProvider(error=RuntimeError("upstream down"))},
     )
-    runtime.cache_model_ids("nvidia_nim", {"cached-model"})
-
+    runtime.cache_model_ids("opencode", {"cached-model"})
 
     await runtime.refresh_model_list_cache()
 
-    assert runtime.cached_model_ids() == {"nvidia_nim": frozenset({"cached-model"})}
+    assert runtime.cached_model_ids()["opencode"] == frozenset({"cached-model"})
 
 
 def test_runtime_metadata_cache_exposes_ids_and_prefixed_infos() -> None:
     runtime = ProviderRuntime(_settings())
     runtime.cache_model_infos(
-        "open_router",
-
+        "opencode",
         {
             ProviderModelInfo("reasoning-model", supports_thinking=True),
             ProviderModelInfo("plain-model", supports_thinking=False),
@@ -245,37 +227,34 @@ def test_runtime_metadata_cache_exposes_ids_and_prefixed_infos() -> None:
     )
 
     assert runtime.cached_model_ids() == {
-        "open_router": frozenset({"reasoning-model", "plain-model"})
+        "opencode": frozenset({"reasoning-model", "plain-model"})
     }
-    assert (
-        runtime.cached_model_supports_thinking("open_router", "reasoning-model") is True
-    )
-    assert runtime.cached_model_supports_thinking("open_router", "plain-model") is False
+    assert runtime.cached_model_supports_thinking("opencode", "reasoning-model") is True
+    assert runtime.cached_model_supports_thinking("opencode", "plain-model") is False
     assert runtime.cached_prefixed_model_infos() == (
-        ProviderModelInfo("open_router/plain-model", supports_thinking=False),
-        ProviderModelInfo("open_router/reasoning-model", supports_thinking=True),
+        ProviderModelInfo("opencode/plain-model", supports_thinking=False),
+        ProviderModelInfo("opencode/reasoning-model", supports_thinking=True),
     )
 
 
 def test_runtime_model_id_cache_keeps_unknown_thinking_support() -> None:
     runtime = ProviderRuntime(_settings())
-    runtime.cache_model_ids("open_router", {"plain-model"})
+    runtime.cache_model_ids("opencode", {"plain-model"})
 
-    assert runtime.cached_model_ids() == {"open_router": frozenset({"plain-model"})}
-    assert runtime.cached_model_supports_thinking("open_router", "plain-model") is None
+    assert runtime.cached_model_ids() == {"opencode": frozenset({"plain-model"})}
+    assert runtime.cached_model_supports_thinking("opencode", "plain-model") is None
     assert runtime.cached_prefixed_model_infos() == (
-        ProviderModelInfo("open_router/plain-model", supports_thinking=None),
+        ProviderModelInfo("opencode/plain-model", supports_thinking=None),
     )
 
 
 def test_runtime_cached_prefixed_model_refs_are_deterministic() -> None:
     runtime = ProviderRuntime(_settings())
-    runtime.cache_model_ids("deepseek", {"deepseek-chat"})
-    runtime.cache_model_ids("open_router", {"z-model", "a-model"})
+    runtime.cache_model_ids("opencode", {"deepseek-chat"})
+    runtime.cache_model_ids("opencode_go", {"z-model", "a-model"})
 
     assert runtime.cached_prefixed_model_refs() == (
-        "open_router/a-model",
-        "open_router/z-model",
-        "deepseek/deepseek-chat",
-
+        "opencode/deepseek-chat",
+        "opencode_go/a-model",
+        "opencode_go/z-model",
     )

@@ -23,7 +23,6 @@ _RUNTIME_EXTRAS = {
     "whisper_device": "cpu",
     "hf_token": "",
     "nvidia_nim_api_key": "",
-
     "messaging_rate_limit": 1,
     "messaging_rate_window": 1.0,
     "max_message_log_entries_per_chat": None,

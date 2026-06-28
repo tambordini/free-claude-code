@@ -328,8 +328,8 @@ _NON_PROVIDER_FIELDS: tuple[ConfigFieldSpec, ...] = (
         "voice",
         "select",
         settings_attr="whisper_device",
-        default="nvidia_nim",
-        options=("cpu", "cuda", "nvidia_nim"),
+        default="cpu",
+        options=("cpu", "cuda"),
         session_sensitive=True,
     ),
     ConfigFieldSpec(

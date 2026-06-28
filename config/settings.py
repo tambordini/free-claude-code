@@ -12,8 +12,6 @@ from .env_files import (
     env_file_override,
     settings_env_files,
 )
-from .nim import NimSettings
-
 from .provider_ids import SUPPORTED_PROVIDER_IDS
 
 

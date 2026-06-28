@@ -26,8 +26,8 @@ def test_models_list_includes_configured_refs_cached_provider_models_and_aliases
     app = create_app(lifespan_enabled=False)
     settings = _settings()
     runtime = ProviderRuntime(settings)
-    runtime.cache_model_ids("deepseek", {"deepseek-chat"})
-    runtime.cache_model_ids("open_router", {"meta/llama-3.3", "anthropic/claude-opus"})
+    runtime.cache_model_ids("opencode", {"deepseek-chat"})
+    runtime.cache_model_ids("opencode_go", {"meta/llama-3.3", "anthropic/claude-opus"})
     app.state.provider_runtime = runtime
 
     app.dependency_overrides[get_settings] = lambda: settings
@@ -74,10 +74,9 @@ def test_models_list_uses_thinking_metadata_for_cached_models():
     app = create_app(lifespan_enabled=False)
     settings = _settings(model_opus=None)
     runtime = ProviderRuntime(settings)
-    runtime.cache_model_ids("deepseek", {"deepseek-chat"})
+    runtime.cache_model_ids("opencode", {"deepseek-chat"})
     runtime.cache_model_infos(
-        "open_router",
-
+        "opencode_go",
         {
             ProviderModelInfo("reasoning-model", supports_thinking=True),
             ProviderModelInfo("plain-model", supports_thinking=False),
@@ -108,8 +107,7 @@ def test_models_list_uses_cached_metadata_for_configured_opencode_go_refs():
     )
     runtime = ProviderRuntime(settings)
     runtime.cache_model_infos(
-        "open_router",
-
+        "opencode_go",
         {ProviderModelInfo("plain-model", supports_thinking=False)},
     )
     app.state.provider_runtime = runtime
@@ -134,7 +132,7 @@ def test_models_list_includes_cached_opencode_go_models():
         model_haiku=None,
     )
     runtime = ProviderRuntime(settings)
-    runtime.cache_model_ids("wafer", {"DeepSeek-V4-Pro", "MiniMax-M2.7"})
+    runtime.cache_model_ids("opencode_go", {"DeepSeek-V4-Pro", "MiniMax-M2.7"})
     app.state.provider_runtime = runtime
 
     app.dependency_overrides[get_settings] = lambda: settings

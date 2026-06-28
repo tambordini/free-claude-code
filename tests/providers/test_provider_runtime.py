@@ -11,23 +11,14 @@ from config.provider_ids import SUPPORTED_PROVIDER_IDS
 from providers.exceptions import UnknownProviderTypeError
 from providers.opencode import OpenCodeProvider
 from providers.runtime import ProviderRuntime, build_provider_config, create_provider
-from providers.wafer import WaferProvider
-from providers.zai import ZaiProvider
-:tests/providers/test_provider_runtime.py
 
 
 def _make_settings(**overrides):
     mock = MagicMock()
-    mock.model = "nvidia_nim/meta/llama3"
+    mock.model = "opencode/deepseek-v4-flash-free"
     mock.model_opus = None
     mock.model_sonnet = None
     mock.model_haiku = None
-    mock.nvidia_nim_api_key = "test_key"
-    mock.open_router_api_key = "test_openrouter_key"
-    mock.mistral_api_key = "test_mistral_key"
-    mock.codestral_api_key = "test_codestral_key"
-    mock.deepseek_api_key = "test_deepseek_key"
-    mock.wafer_api_key = "test_wafer_key"
 
     mock.opencode_api_key = "test_opencode_key"
     mock.opencode_proxy = ""
@@ -41,8 +32,6 @@ def _make_settings(**overrides):
     mock.enable_model_thinking = True
     mock.log_raw_sse_events = False
     mock.log_api_error_tracebacks = False
-    mock.nim = NimSettings()
-:tests/providers/test_provider_runtime.py
     for key, value in overrides.items():
         setattr(mock, key, value)
     return mock
@@ -54,7 +43,6 @@ def test_importing_runtime_does_not_eager_load_other_adapters() -> None:
         "import sys\n"
         "import providers.runtime\n"
         "assert 'providers.open_router' not in sys.modules\n"
-:tests/providers/test_provider_runtime.py
     )
     proc = subprocess.run(
         [sys.executable, "-c", code],
@@ -73,33 +61,6 @@ def test_provider_catalog_covers_advertised_provider_ids():
         assert descriptor.capabilities
 
 
-def test_ollama_descriptor_uses_native_anthropic_transport():
-    descriptor = PROVIDER_CATALOG["ollama"]
-
-    assert descriptor.transport_type == "anthropic_messages"
-    assert descriptor.default_base_url == "http://localhost:11434"
-    assert "native_anthropic" in descriptor.capabilities
-
-
-def test_zai_descriptor_uses_fixed_cloud_base_url():
-    descriptor = PROVIDER_CATALOG["zai"]
-
-    assert descriptor.default_base_url == ZAI_DEFAULT_BASE
-    assert descriptor.base_url_attr is None
-
-
-def test_zai_provider_config_ignores_stale_base_url_setting():
-    descriptor = PROVIDER_CATALOG["zai"]
-
-    config = build_provider_config(
-        descriptor,
-        _make_settings(zai_base_url="https://custom.zai.invalid/v1"),
-    )
-
-    assert config.base_url == ZAI_DEFAULT_BASE
-
-
-:tests/providers/test_provider_runtime.py
 def test_opencode_go_provider_config_uses_correct_base_url_and_name():
     with patch("httpx.AsyncClient"):
         provider = create_provider("opencode_go", _make_settings())
@@ -142,9 +103,8 @@ def test_provider_runtime_caches_by_provider_id():
     runtime = ProviderRuntime(_make_settings())
 
     with patch("providers.transports.openai_chat.transport.AsyncOpenAI"):
-        first = runtime.resolve_provider("nvidia_nim")
-        second = runtime.resolve_provider("nvidia_nim")
-:tests/providers/test_provider_runtime.py
+        first = runtime.resolve_provider("opencode")
+        second = runtime.resolve_provider("opencode")
 
     assert first is second
 
@@ -186,4 +146,3 @@ async def test_provider_runtime_cleanup_exceptiongroup_on_multiple_failures() ->
     assert len(exc_info.value.exceptions) == 2
     assert not runtime.is_cached("x")
     assert not runtime.is_cached("y")
-:tests/providers/test_provider_runtime.py

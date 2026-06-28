@@ -17,18 +17,12 @@ from providers.transports.openai_chat import (
 _VISION_MODELS: frozenset[str] = frozenset({"mimo-v2.5-free", "mimo-v2.5"})
 
 
-
 # Non-vision model -> vision fallback model.
 _VISION_FALLBACK: dict[str, str] = {
     "deepseek-v4-flash-free": "mimo-v2.5-free",
     "deepseek-v4-flash": "mimo-v2.5",
     "deepseek-v4-pro": "mimo-v2.5",
-
-
-
->>>>>>> 2da755a (feat: Update deepseek v4 pro fallback vision to mimo 2.5)
 }
-
 
 
 class OpenCodeProvider(OpenAIChatTransport):
