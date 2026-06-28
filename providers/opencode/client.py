@@ -30,6 +30,7 @@ _VISION_FALLBACK: dict[str, str] = {
 }
 
 
+
 class OpenCodeProvider(OpenAIChatTransport):
     """OpenCode Zen provider using ``https://opencode.ai/zen/v1/chat/completions``."""
 

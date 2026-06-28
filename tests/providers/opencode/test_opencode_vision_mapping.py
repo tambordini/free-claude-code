@@ -19,6 +19,7 @@ def test_vision_fallback_defined() -> None:
         assert vision_model in _VISION_MODELS
 
 
+
 def test_list_model_infos_signature() -> None:
     """At minimum, verify OpenCodeProvider has list_model_infos."""
     from providers.opencode.client import OpenCodeProvider
