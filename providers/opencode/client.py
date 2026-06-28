@@ -25,6 +25,8 @@ _VISION_FALLBACK: dict[str, str] = {
     "deepseek-v4-pro": "mimo-v2.5",
 
 
+
+>>>>>>> 2da755a (feat: Update deepseek v4 pro fallback vision to mimo 2.5)
 }
 
 
