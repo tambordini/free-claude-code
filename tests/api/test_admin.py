@@ -29,7 +29,6 @@ def _clear_process_config(monkeypatch) -> None:
         "HOST",
         "PORT",
         "LOG_FILE",
-        "ZAI_BASE_URL",
         "CLAUDE_WORKSPACE",
         "CLAUDE_CLI_BIN",
     ):
@@ -99,7 +98,7 @@ def test_admin_config_masks_secrets_and_exposes_manifest(monkeypatch, tmp_path):
     keys = {field["key"] for field in body["fields"]}
     assert "OPENCODE_API_KEY" in keys
     assert "ANTHROPIC_AUTH_TOKEN" in keys
-    assert "ZAI_BASE_URL" not in keys
+    assert "LOG_FILE" not in keys
     assert "CLAUDE_WORKSPACE" not in keys
     assert "CLAUDE_CLI_BIN" not in keys
     assert "LOG_FILE" not in keys
@@ -212,7 +211,7 @@ def test_admin_apply_preserves_hidden_diagnostics_and_smoke_values(
     assert "FCC_SMOKE_MODEL_OPENCODE=opencode/smoke-model" in text
 
 
-def test_admin_apply_omits_stale_zai_base_url(monkeypatch, tmp_path):
+def test_admin_apply_preserves_existing_managed_values(monkeypatch, tmp_path):
     _set_home(monkeypatch, tmp_path)
     _clear_process_config(monkeypatch)
     env_file = tmp_path / ".fcc" / ".env"
@@ -222,7 +221,6 @@ def test_admin_apply_omits_stale_zai_base_url(monkeypatch, tmp_path):
             [
                 "MODEL=opencode/test-model",
                 "OPENCODE_API_KEY=oc-secret",
-                "ZAI_BASE_URL=https://custom.zai.invalid/v1",
                 "",
             ]
         ),
@@ -240,7 +238,6 @@ def test_admin_apply_omits_stale_zai_base_url(monkeypatch, tmp_path):
     assert body["applied"] is True
     text = env_file.read_text("utf-8")
     assert "OPENCODE_API_KEY=oc-secret" in text
-    assert "ZAI_BASE_URL" not in text
 
 
 def test_admin_apply_omits_stale_fixed_claude_runtime_settings(monkeypatch, tmp_path):

@@ -92,7 +92,7 @@ def create_app(*, lifespan_enabled: bool = True) -> FastAPI:
 
     app_kwargs: dict[str, Any] = {
         "title": "Claude Code Proxy",
-        "version": "2.1.0",
+        "version": "3.1.0",
     }
     if lifespan_enabled:
         app_kwargs["lifespan"] = lifespan

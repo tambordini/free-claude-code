@@ -119,7 +119,7 @@ def test_settings_stays_schema_only() -> None:
         assert removed_api not in settings_text
 
 
-_MESSAGING_ALLOWED_PROVIDER_MODULES = frozenset({"providers.nvidia_nim.voice"})
+_MESSAGING_ALLOWED_PROVIDER_MODULES: frozenset[str] = frozenset()
 
 
 def test_messaging_does_not_import_disallowed_modules() -> None:

@@ -93,7 +93,7 @@ async def test_messages_handler_passes_routed_request_and_stream_metadata() -> N
     provider = FakeProvider()
     handler = MessagesHandler(Settings(), provider_getter=lambda _: provider)
     request = MessagesRequest(
-        model="nvidia_nim/test-model",
+        model="opencode/test-model",
         max_tokens=100,
         messages=[Message(role="user", content="hi")],
     )
@@ -115,7 +115,7 @@ async def test_messages_handler_forces_no_thinking_for_safety_classifier() -> No
     provider = FakeProvider()
     handler = MessagesHandler(Settings(), provider_getter=lambda _: provider)
     request = MessagesRequest(
-        model="nvidia_nim/test-model",
+        model="opencode/test-model",
         max_tokens=100,
         system=_CLASSIFIER_SYSTEM,
         messages=[Message(role="user", content=_CLASSIFIER_USER)],
@@ -148,7 +148,7 @@ async def test_messages_handler_preserves_thinking_for_non_classifier() -> None:
     provider = FakeProvider()
     handler = MessagesHandler(Settings(), provider_getter=lambda _: provider)
     request = MessagesRequest(
-        model="nvidia_nim/test-model",
+        model="opencode/test-model",
         max_tokens=100,
         system="Explain XML formats.",
         messages=[
@@ -210,7 +210,7 @@ def test_messages_handler_optimization_intercepts_before_provider_execution() ->
     provider_getter = MagicMock()
     handler = MessagesHandler(Settings(), provider_getter=provider_getter)
     request = MessagesRequest(
-        model="nvidia_nim/test-model",
+        model="opencode/test-model",
         max_tokens=100,
         messages=[Message(role="user", content="quota check")],
     )
@@ -233,7 +233,7 @@ async def test_responses_handler_bypasses_message_only_optimizations() -> None:
     ):
         response = await handler.create(
             OpenAIResponsesRequest(
-                model="nvidia_nim/test-model",
+                model="opencode/test-model",
                 input="quota check",
             )
         )
@@ -252,7 +252,7 @@ async def test_responses_handler_does_not_apply_safety_classifier_policy() -> No
     with patch("api.handlers.messages.trace_event") as trace_mock:
         response = await handler.create(
             OpenAIResponsesRequest(
-                model="nvidia_nim/test-model",
+                model="opencode/test-model",
                 input=_CLASSIFIER_USER,
                 instructions=_CLASSIFIER_SYSTEM,
             )
@@ -277,7 +277,7 @@ def test_token_count_handler_routes_and_counts_tokens() -> None:
 
     response = handler.count(
         TokenCountRequest(
-            model="nvidia_nim/test-model",
+            model="opencode/test-model",
             messages=[Message(role="user", content="hi")],
         )
     )

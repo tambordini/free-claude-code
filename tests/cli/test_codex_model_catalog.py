@@ -49,15 +49,15 @@ def _slugs(catalog: Mapping[str, Any]) -> list[str]:
 def test_codex_catalog_converts_configured_and_cached_models_to_direct_slugs() -> None:
     catalog = build_codex_model_catalog(
         _models_payload(
-            "anthropic/opencode/nvidia/nemotron-3-super",
-            "claude-3-freecc-no-thinking/opencode/nvidia/nemotron-3-super",
+            "anthropic/opencode/deepseek-v4-flash-free",
+            "claude-3-freecc-no-thinking/opencode/deepseek-v4-flash-free",
             "anthropic/opencode_go/meta-llama/llama-3.3-70b",
             "claude-3-freecc-no-thinking/opencode_go/meta-llama/llama-3.3-70b",
         )
     )
 
     assert _slugs(catalog) == [
-        "opencode/nvidia/nemotron-3-super",
+        "opencode/deepseek-v4-flash-free",
         "opencode_go/meta-llama/llama-3.3-70b",
     ]
     model = _catalog_models(catalog)[0]

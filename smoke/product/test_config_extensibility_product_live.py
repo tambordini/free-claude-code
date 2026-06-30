@@ -117,7 +117,7 @@ def test_proxy_timeout_config_e2e(smoke_config: SmokeConfig, tmp_path) -> None:
         "from config.settings import Settings; "
         "from config.provider_catalog import PROVIDER_CATALOG; "
         "from providers.runtime import build_provider_config; "
-        "s=Settings(); c=build_provider_config(PROVIDER_CATALOG['open_router'], s); "
+        "s=Settings(); c=build_provider_config(PROVIDER_CATALOG['opencode'], s); "
         "print(c.proxy); print(c.http_read_timeout); "
         "print(c.http_connect_timeout); print(c.http_write_timeout)"
     )

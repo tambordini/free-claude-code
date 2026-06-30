@@ -14,7 +14,7 @@ from providers.exceptions import ServiceUnavailableError
 from providers.runtime import ProviderRuntime
 
 _RUNTIME_EXTRAS = {
-    "model": "nvidia_nim/test-model",
+    "model": "opencode/test-model",
     "model_opus": None,
     "model_sonnet": None,
     "model_haiku": None,
@@ -22,7 +22,7 @@ _RUNTIME_EXTRAS = {
     "whisper_model": "base",
     "whisper_device": "cpu",
     "hf_token": "",
-    "nvidia_nim_api_key": "",
+    "opencode_api_key": "",
     "messaging_rate_limit": 1,
     "messaging_rate_window": 1.0,
     "max_message_log_entries_per_chat": None,

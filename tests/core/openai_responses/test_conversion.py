@@ -392,7 +392,7 @@ def test_responses_unsupported_tool_type_is_clear() -> None:
 def test_responses_malformed_prior_function_call_is_quarantined() -> None:
     payload = _ADAPTER.to_anthropic_payload(
         {
-            "model": "nvidia_nim/test-model",
+            "model": "opencode/test-model",
             "input": [
                 {"role": "user", "content": "hello"},
                 {

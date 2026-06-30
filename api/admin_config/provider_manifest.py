@@ -8,61 +8,11 @@ from config.provider_catalog import PROVIDER_CATALOG
 from config.settings import Settings
 
 _PROVIDER_FIELD_OVERRIDES: dict[str, dict[str, Any]] = {
-    "NVIDIA_NIM_API_KEY": {
-        "label": "NVIDIA NIM API Key",
-        "description": "Used by NVIDIA NIM chat and optional NIM voice transcription.",
-    },
-    "MISTRAL_API_KEY": {
-        "label": "Mistral API Key",
-        "description": (
-            "Mistral La Plateforme (api.mistral.ai); Experiment plan is free tier with rate limits."
-        ),
-    },
-    "CODESTRAL_API_KEY": {
-        "label": "Codestral API Key",
-        "description": (
-            "Mistral Codestral endpoint (codestral.mistral.ai); distinct from Mistral "
-            "La Plateforme ``MISTRAL_API_KEY``. See Mistral docs for coding/FIM domains."
-        ),
-    },
     "OPENCODE_API_KEY": {
         "label": "OpenCode API Key",
         "description": (
             "OpenCode Zen curated gateway (opencode.ai/zen/v1) and OpenCode Go subscription "
             "gateway (opencode.ai/zen/go/v1); single key from opencode.ai/auth."
-        ),
-    },
-    "ZAI_API_KEY": {
-        "label": "Z.ai API Key",
-        "description": "Z.ai Coding Plan API key.",
-    },
-    "FIREWORKS_API_KEY": {
-        "label": "Fireworks API Key",
-        "description": "Fireworks AI inference API key.",
-    },
-    "GEMINI_API_KEY": {
-        "label": "Gemini API Key",
-        "description": (
-            "Google AI Studio Gemini API key (Google AI Studio / Gemini API "
-            "[OpenAI-compatible](https://ai.google.dev/gemini-api/docs/openai)); "
-            "free tier has per-model rate limits and data may be used for improvement "
-            "outside the UK/CH/EEA/EU."
-        ),
-    },
-    "GROQ_API_KEY": {
-        "label": "Groq API Key",
-        "description": (
-            "GroqCloud OpenAI-compatible API key ([console.groq.com/keys]("
-            "https://console.groq.com/keys)); see Groq "
-            "[OpenAI compatibility docs](https://console.groq.com/docs/openai)."
-        ),
-    },
-    "CEREBRAS_API_KEY": {
-        "label": "Cerebras API Key",
-        "description": (
-            "Cerebras Inference API key (create in [Cloud Console](https://cloud.cerebras.ai)); "
-            "see [Quickstart](https://inference-docs.cerebras.ai/quickstart) and "
-            "[OpenAI compatibility](https://inference-docs.cerebras.ai/resources/openai)."
         ),
     },
 }

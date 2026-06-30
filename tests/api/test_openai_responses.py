@@ -206,7 +206,7 @@ def test_create_response_malformed_provider_function_call_fails_stream() -> None
         response = client.post(
             "/v1/responses",
             json={
-                "model": "nvidia_nim/test-model",
+                "model": "opencode/test-model",
                 "input": "Use echo",
                 "stream": True,
                 "tools": [
@@ -425,7 +425,7 @@ def test_create_response_quarantines_malformed_prior_function_call() -> None:
         response = client.post(
             "/v1/responses",
             json={
-                "model": "nvidia_nim/test-model",
+                "model": "opencode/test-model",
                 "input": [
                     {"role": "user", "content": "hello"},
                     {

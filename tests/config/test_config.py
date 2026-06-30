@@ -548,19 +548,19 @@ class TestPerModelMapping:
         from config.settings import Settings
 
         s = Settings()
-        s.model_opus = "open_router/deepseek/deepseek-r1"
+        s.model_opus = "opencode_go/deepseek/deepseek-r1"
         router = ModelRouter(s)
         assert (
             router.resolve("claude-opus-4-20250514").provider_model_ref
-            == "open_router/deepseek/deepseek-r1"
+            == "opencode_go/deepseek/deepseek-r1"
         )
         assert (
             router.resolve("claude-3-opus").provider_model_ref
-            == "open_router/deepseek/deepseek-r1"
+            == "opencode_go/deepseek/deepseek-r1"
         )
         assert (
             router.resolve("claude-3-opus-20240229").provider_model_ref
-            == "open_router/deepseek/deepseek-r1"
+            == "opencode_go/deepseek/deepseek-r1"
         )
 
     def test_resolve_model_sonnet_override(self):
@@ -569,15 +569,15 @@ class TestPerModelMapping:
         from config.settings import Settings
 
         s = Settings()
-        s.model_sonnet = "nvidia_nim/meta/llama-3.3-70b-instruct"
+        s.model_sonnet = "opencode/meta/llama-3.3-70b-instruct"
         router = ModelRouter(s)
         assert (
             router.resolve("claude-sonnet-4-20250514").provider_model_ref
-            == "nvidia_nim/meta/llama-3.3-70b-instruct"
+            == "opencode/meta/llama-3.3-70b-instruct"
         )
         assert (
             router.resolve("claude-3-5-sonnet-20241022").provider_model_ref
-            == "nvidia_nim/meta/llama-3.3-70b-instruct"
+            == "opencode/meta/llama-3.3-70b-instruct"
         )
 
     def test_resolve_model_haiku_override(self):
@@ -586,19 +586,19 @@ class TestPerModelMapping:
         from config.settings import Settings
 
         s = Settings()
-        s.model_haiku = "lmstudio/qwen2.5-7b"
+        s.model_haiku = "opencode_go/qwen2.5-7b"
         router = ModelRouter(s)
         assert (
             router.resolve("claude-3-haiku-20240307").provider_model_ref
-            == "lmstudio/qwen2.5-7b"
+            == "opencode_go/qwen2.5-7b"
         )
         assert (
             router.resolve("claude-3-5-haiku-20241022").provider_model_ref
-            == "lmstudio/qwen2.5-7b"
+            == "opencode_go/qwen2.5-7b"
         )
         assert (
             router.resolve("claude-haiku-4-20250514").provider_model_ref
-            == "lmstudio/qwen2.5-7b"
+            == "opencode_go/qwen2.5-7b"
         )
 
     def test_resolve_model_fallback_when_override_not_set(self):
@@ -607,19 +607,19 @@ class TestPerModelMapping:
         from config.settings import Settings
 
         s = Settings()
-        s.model = "nvidia_nim/fallback-model"
+        s.model = "opencode/fallback-model"
         router = ModelRouter(s)
         assert (
             router.resolve("claude-opus-4-20250514").provider_model_ref
-            == "nvidia_nim/fallback-model"
+            == "opencode/fallback-model"
         )
         assert (
             router.resolve("claude-sonnet-4-20250514").provider_model_ref
-            == "nvidia_nim/fallback-model"
+            == "opencode/fallback-model"
         )
         assert (
             router.resolve("claude-3-haiku-20240307").provider_model_ref
-            == "nvidia_nim/fallback-model"
+            == "opencode/fallback-model"
         )
 
     def test_resolve_model_unknown_model_falls_back(self):
@@ -628,14 +628,14 @@ class TestPerModelMapping:
         from config.settings import Settings
 
         s = Settings()
-        s.model = "nvidia_nim/fallback-model"
-        s.model_opus = "open_router/opus-model"
+        s.model = "opencode/fallback-model"
+        s.model_opus = "opencode_go/opus-model"
         router = ModelRouter(s)
         assert router.resolve("claude-2.1").provider_model_ref == (
-            "nvidia_nim/fallback-model"
+            "opencode/fallback-model"
         )
         assert router.resolve("some-unknown-model").provider_model_ref == (
-            "nvidia_nim/fallback-model"
+            "opencode/fallback-model"
         )
 
     def test_resolve_model_case_insensitive(self):
@@ -644,55 +644,42 @@ class TestPerModelMapping:
         from config.settings import Settings
 
         s = Settings()
-        s.model_opus = "open_router/opus-model"
+        s.model_opus = "opencode_go/opus-model"
         assert (
             ModelRouter(s).resolve("Claude-OPUS-4").provider_model_ref
-            == "open_router/opus-model"
+            == "opencode_go/opus-model"
         )
 
     def test_parse_provider_type(self):
         """parse_provider_type extracts provider from model string."""
 
-        assert parse_provider_type("nvidia_nim/meta/llama") == "nvidia_nim"
-        assert parse_provider_type("open_router/deepseek/r1") == "open_router"
-        assert parse_provider_type("mistral/devstral-small-latest") == "mistral"
-        assert (
-            parse_provider_type("mistral_codestral/codestral-latest")
-            == "mistral_codestral"
-        )
-        assert parse_provider_type("deepseek/deepseek-chat") == "deepseek"
-        assert parse_provider_type("lmstudio/qwen") == "lmstudio"
-        assert parse_provider_type("llamacpp/model") == "llamacpp"
-        assert parse_provider_type("ollama/llama3.1") == "ollama"
-        assert parse_provider_type("wafer/DeepSeek-V4-Pro") == "wafer"
-        assert parse_provider_type("gemini/models/gemini-3.1-flash-lite") == "gemini"
-        assert parse_provider_type("groq/llama-3.3-70b-versatile") == "groq"
-        assert parse_provider_type("cerebras/llama3.1-8b") == "cerebras"
+        assert parse_provider_type("opencode/meta/llama") == "opencode"
+        assert parse_provider_type("opencode_go/deepseek/r1") == "opencode_go"
+        assert parse_provider_type("opencode/devstral-small-latest") == "opencode"
+        assert parse_provider_type("opencode/deepseek-chat") == "opencode"
+        assert parse_provider_type("opencode/qwen") == "opencode"
+        assert parse_provider_type("opencode_go/llama3.1") == "opencode_go"
 
     def test_parse_model_name(self):
         """parse_model_name extracts model name from model string."""
 
-        assert parse_model_name("nvidia_nim/meta/llama") == "meta/llama"
-        assert parse_model_name("mistral/devstral-small-latest") == (
+        assert parse_model_name("opencode/meta/llama") == "meta/llama"
+        assert parse_model_name("opencode/devstral-small-latest") == (
             "devstral-small-latest"
         )
+        assert parse_model_name("opencode/deepseek-chat") == "deepseek-chat"
+        assert parse_model_name("opencode/qwen") == "qwen"
+        assert parse_model_name("opencode_go/llama3.1") == "llama3.1"
+        assert parse_model_name("opencode/DeepSeek-V4-Pro") == "DeepSeek-V4-Pro"
         assert (
-            parse_model_name("mistral_codestral/codestral-latest") == "codestral-latest"
-        )
-        assert parse_model_name("deepseek/deepseek-chat") == "deepseek-chat"
-        assert parse_model_name("lmstudio/qwen") == "qwen"
-        assert parse_model_name("llamacpp/model") == "model"
-        assert parse_model_name("ollama/llama3.1") == "llama3.1"
-        assert parse_model_name("wafer/DeepSeek-V4-Pro") == "DeepSeek-V4-Pro"
-        assert (
-            parse_model_name("gemini/models/gemini-3.1-flash-lite")
+            parse_model_name("opencode/models/gemini-3.1-flash-lite")
             == "models/gemini-3.1-flash-lite"
         )
         assert (
-            parse_model_name("groq/llama-3.3-70b-versatile")
+            parse_model_name("opencode/llama-3.3-70b-versatile")
             == "llama-3.3-70b-versatile"
         )
-        assert parse_model_name("cerebras/llama3.1-8b") == "llama3.1-8b"
+        assert parse_model_name("opencode/llama3.1-8b") == "llama3.1-8b"
 
     def test_configured_chat_model_refs_collects_unique_models_with_sources(
         self, monkeypatch

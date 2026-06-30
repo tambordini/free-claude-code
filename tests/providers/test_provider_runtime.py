@@ -42,7 +42,7 @@ def test_importing_runtime_does_not_eager_load_other_adapters() -> None:
     code = (
         "import sys\n"
         "import providers.runtime\n"
-        "assert 'providers.open_router' not in sys.modules\n"
+        "assert 'providers.opencode' not in sys.modules\n"
     )
     proc = subprocess.run(
         [sys.executable, "-c", code],

@@ -60,7 +60,7 @@ async def test_anthropic_tool_stream_converts_to_function_call_item() -> None:
 async def test_anthropic_function_tool_arguments_are_normalized() -> None:
     response = await _completed_response_from_sse(
         _aiter(_anthropic_tool_stream(partial_json='{ "value" : "FCC" }')),
-        {"model": "nvidia_nim/test-model", "stream": True},
+        {"model": "opencode/test-model", "stream": True},
     )
 
     assert response["output"][0]["arguments"] == '{"value":"FCC"}'
@@ -71,7 +71,7 @@ async def test_anthropic_malformed_function_tool_arguments_fail_response() -> No
     text = await _collect_sse(
         _ADAPTER.iter_sse_from_anthropic(
             _aiter(_anthropic_tool_stream(partial_json='{"value":"FCC" "bad"}')),
-            {"model": "nvidia_nim/test-model", "stream": True},
+            {"model": "opencode/test-model", "stream": True},
         )
     )
 
@@ -97,7 +97,7 @@ async def test_anthropic_malformed_function_tool_arguments_fail_on_eof() -> None
     text = await _collect_sse(
         _ADAPTER.iter_sse_from_anthropic(
             _aiter(stream[:-1]),
-            {"model": "nvidia_nim/test-model", "stream": True},
+            {"model": "opencode/test-model", "stream": True},
         )
     )
 
@@ -186,7 +186,7 @@ async def test_custom_tool_input_remains_free_form_when_not_json() -> None:
             )
         ),
         {
-            "model": "nvidia_nim/test-model",
+            "model": "opencode/test-model",
             "stream": True,
             "tools": [{"type": "custom", "name": "apply_patch"}],
         },
