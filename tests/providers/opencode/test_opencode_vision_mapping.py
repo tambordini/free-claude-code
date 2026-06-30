@@ -2,7 +2,7 @@
 
 
 def test_vision_models_defined() -> None:
-    from providers.opencode.client import _VISION_MODELS
+    from config.vision import _VISION_MODELS
 
     assert len(_VISION_MODELS) > 0
     assert "mimo-v2.5-free" in _VISION_MODELS
@@ -10,7 +10,7 @@ def test_vision_models_defined() -> None:
 
 
 def test_vision_fallback_defined() -> None:
-    from providers.opencode.client import _VISION_FALLBACK, _VISION_MODELS
+    from config.vision import _VISION_FALLBACK, _VISION_MODELS
 
     for non_vision_model, vision_model in _VISION_FALLBACK.items():
         assert non_vision_model not in _VISION_MODELS

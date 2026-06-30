@@ -98,7 +98,7 @@ async def test_messages_handler_passes_routed_request_and_stream_metadata() -> N
         messages=[Message(role="user", content="hi")],
     )
 
-    response = handler.create(request)
+    response = await handler.create(request)
     assert isinstance(response, StreamingResponse)
 
     body = await _streaming_body_text(response)
@@ -122,7 +122,7 @@ async def test_messages_handler_forces_no_thinking_for_safety_classifier() -> No
     )
 
     with patch("api.handlers.messages.trace_event") as trace_mock:
-        response = handler.create(request)
+        response = await handler.create(request)
         assert isinstance(response, StreamingResponse)
         await _streaming_body_text(response)
 
@@ -163,7 +163,7 @@ async def test_messages_handler_preserves_thinking_for_non_classifier() -> None:
     )
 
     with patch("api.handlers.messages.trace_event") as trace_mock:
-        response = handler.create(request)
+        response = await handler.create(request)
         assert isinstance(response, StreamingResponse)
         await _streaming_body_text(response)
 
@@ -187,7 +187,7 @@ async def test_messages_handler_keeps_existing_no_thinking_for_classifier() -> N
     )
 
     with patch("api.handlers.messages.trace_event") as trace_mock:
-        response = handler.create(request)
+        response = await handler.create(request)
         assert isinstance(response, StreamingResponse)
         await _streaming_body_text(response)
 
@@ -206,7 +206,10 @@ async def test_messages_handler_keeps_existing_no_thinking_for_classifier() -> N
     ]
 
 
-def test_messages_handler_optimization_intercepts_before_provider_execution() -> None:
+@pytest.mark.asyncio
+async def test_messages_handler_optimization_intercepts_before_provider_execution() -> (
+    None
+):
     provider_getter = MagicMock()
     handler = MessagesHandler(Settings(), provider_getter=provider_getter)
     request = MessagesRequest(
@@ -217,7 +220,7 @@ def test_messages_handler_optimization_intercepts_before_provider_execution() ->
     optimized = object()
 
     with patch("api.handlers.messages.try_optimizations", return_value=optimized):
-        assert handler.create(request) is optimized
+        assert await handler.create(request) is optimized
 
     provider_getter.assert_not_called()
 

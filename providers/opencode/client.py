@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from config.vision import _VISION_MODELS
 from providers.base import ProviderConfig
 from providers.defaults import OPENCODE_DEFAULT_BASE
 from providers.model_listing import ProviderModelInfo
@@ -12,17 +13,6 @@ from providers.transports.openai_chat import (
     OpenAIChatTransport,
     build_openai_chat_request_body,
 )
-
-# Models that support vision input.
-_VISION_MODELS: frozenset[str] = frozenset({"mimo-v2.5-free", "mimo-v2.5"})
-
-
-# Non-vision model -> vision fallback model.
-_VISION_FALLBACK: dict[str, str] = {
-    "deepseek-v4-flash-free": "mimo-v2.5-free",
-    "deepseek-v4-flash": "mimo-v2.5",
-    "deepseek-v4-pro": "mimo-v2.5",
-}
 
 
 class OpenCodeProvider(OpenAIChatTransport):
